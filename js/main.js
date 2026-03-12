@@ -1,3 +1,12 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const ruolo = localStorage.getItem('userRole');
+    if (ruolo === 'admin') {
+        window.location.replace('admin.html');
+    } else if (ruolo) {
+        window.location.replace('dashboard.html');
+    }
+});
+
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault(); 
 

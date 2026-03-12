@@ -19,9 +19,13 @@ if (!$user_id) {
 }
 
 try {
-    // 3. Query corretta (controlla che i nomi delle tabelle siano al singolare/plurale come li hai creati)
     $stmt = $pdo->prepare("
-        SELECT p.*, s.nome as nome_sala, i.nome as organizzatore, part.stato
+        SELECT p.*, 
+               s.nome as nome_sala, 
+               s.capienza as max_iscritti, 
+               i.nome as organizzatore, 
+               part.stato,
+               (SELECT COUNT(*) FROM partecipazioni WHERE id_prenotazione = p.id AND stato = 'confermato') as confermati
         FROM partecipazioni part
         JOIN prenotazioni p ON part.id_prenotazione = p.id
         JOIN sale s ON p.id_sala = s.id
