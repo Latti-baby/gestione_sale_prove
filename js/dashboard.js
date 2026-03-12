@@ -1,16 +1,24 @@
 document.addEventListener('DOMContentLoaded', function() {
     const ruolo = localStorage.getItem('userRole');
     const nome = localStorage.getItem('userName');
+    const settore = localStorage.getItem('userSettore');
     const isResp = localStorage.getItem('isResponsabile') === 'true';
 
-    // 1. SMISTAMENTO: Se sei admin, via di qui!
-    if (ruolo === 'admin') {
+    // 1. SMISTAMENTO: Se sei admin o amministratore, via di qui!
+    if (ruolo === 'admin' || ruolo === 'amministratore') {
         window.location.replace('admin.html');
         return;
     }
 
     if (document.getElementById('userName') && nome) {
-        document.getElementById('userName').textContent = "Ciao, " + nome;
+        // Formatta il testo in base al ruolo e al settore
+        let testoNavbar = "Ciao, " + nome;
+        if (isResp && settore) {
+            testoNavbar += " (Responsabile " + settore + ")";
+        } else if (settore) {
+            testoNavbar += " (" + settore + ")";
+        }
+        document.getElementById('userName').textContent = testoNavbar;
     }
 
     const sezioneResp = document.getElementById('sezioneResponsabile');
@@ -20,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     caricaInviti();
 });
+
 
 function caricaInviti() {
     const lista = document.getElementById('listaInviti');

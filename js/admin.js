@@ -173,3 +173,11 @@ function renderGrafico(dati) {
         }
     });
 }
+
+
+function logout() {
+    fetch('backend/api/logout.php').then(() => {
+        localStorage.clear();
+        window.location.replace('index.html');
+    });
+}
