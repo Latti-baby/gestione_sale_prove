@@ -1,0 +1,47 @@
+/* assets/css/style.css */
+
+/* Impostazioni generali per lo sfondo */
+body {
+    background-color: #f4f7f6;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Centratura del container di login */
+.vh-100 {
+    min-height: 100vh;
+}
+
+/* Personalizzazione della Card di Login */
+.card {
+    border: none;
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-title {
+    color: #333;
+    font-weight: 700;
+}
+
+/* Stile per i feedback (messaggi di errore/successo) */
+#loginFeedback .alert {
+    font-size: 0.9rem;
+    border-radius: 10px;
+}
+
+/* Pulsante personalizzato */
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+    padding: 10px;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Pannello Admin - Monitoraggio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-danger mb-4">
+        <div class="container">
+            <span class="navbar-brand">Area Amministratore</span>
+            <a href="dashboard.html" class="btn btn-outline-light btn-sm">Torna alla Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white text-center">Statistiche Occupazione Sale</div>
+            <div class="card-body" style="height: 250px;">
+                <canvas id="chartSettori"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Filtra Prenotazioni</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Cerca per Attività o Sala</label>
+                        <input type="text" id="filtroTesto" class="form-control" placeholder="Scrivi...">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Settore/Area</label>
+                        <select id="filtroSettore" class="form-select">
+                            <option value="">Tutti i settori</option>
+                            </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-secondary w-100" onclick="resetFiltri()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive bg-white p-3 rounded shadow-sm">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Attività</th>
+                        <th>Sala</th>
+                        <th>Area</th>
+                        <th>Data/Ora</th>
+                        <th>Occupazione</th>
+                        <th>Stato</th>
+                    </tr>
+                </thead>
+                <tbody id="tabellaReport">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body><thead class="table-light">
+    <tr>
+        <th>Attività</th>
+        <th>Sala (Posti Occupati / Max)</th> <th>Area</th>
+        <th>Data/Ora</th>
+        <th>Azioni</th> </tr>
+</thead>
+<tbody id="tabellaReport"></tbody>
+
+<div class="modal fade" id="modalModifica" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifica Prenotazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formModifica">
+                    <input type="hidden" id="edit_id">
+                    <div class="mb-3">
+                        <label class="form-label">Attività</label>
+                        <input type="text" class="form-control" id="edit_attivita" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data</label>
+                        <input type="date" class="form-control" id="edit_data" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label">Ora Inizio</label>
+                            <input type="number" class="form-control" id="edit_ora" min="9" max="23" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Durata (h)</label>
+                            <input type="number" class="form-control" id="edit_durata" min="1" max="5" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                <button type="button" class="btn btn-primary" onclick="salvaModifica()">Salva Modifiche</button>
+            </div>
+        </div>
+    </div>
+</div>
+</html>
