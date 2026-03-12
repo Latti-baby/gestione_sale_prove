@@ -150,13 +150,9 @@ function renderGrafico(dati) {
     // Contiamo quante prenotazioni ci sono per ogni settore
     const conteggio = {};
     dati.forEach(item => {
-<td>
-    <button class="btn btn-outline-danger btn-sm" onclick="eliminaPrenotazione(${row.id})">
-        Elimina
-    </button>
-</td>
         conteggio[item.nome_settore] = (conteggio[item.nome_settore] || 0) + 1;
     });
+
 
     new Chart(ctx, {
         type: 'bar',
