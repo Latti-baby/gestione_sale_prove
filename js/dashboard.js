@@ -80,3 +80,11 @@ function rispondi(idPrenotazione, stato) {
         }
     });
 }
+
+function logout() {
+    // Chiama l'API per distruggere la sessione, poi pulisce il browser e reindirizza
+    fetch('backend/api/logout.php').then(() => {
+        localStorage.clear();
+        window.location.replace('index.html');
+    });
+}

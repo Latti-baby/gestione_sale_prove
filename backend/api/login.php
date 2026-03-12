@@ -7,9 +7,14 @@ require_once '../config.php';
 $email = $_POST['email'] ?? '';
 
 try {
-    $stmt = $pdo->prepare("SELECT id, nome, ruolo FROM iscritti WHERE email = ?");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare("
+            SELECT i.id, i.nome, i.ruolo, s.nome AS nome_settore 
+            FROM iscritti i
+            LEFT JOIN settori s ON i.id_settore = s.id
+            WHERE i.email = ?
+        ");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
         // SALVIAMO I DATI IN SESSIONE (Lato Server)
@@ -25,7 +30,8 @@ try {
             'success' => true,
             'id' => $user['id'],
             'nome' => $user['nome'],
-            'ruolo' => $user['ruolo'], // 'admin' o 'utente'
+            'ruolo' => strtolower(trim($user['ruolo'])), // Normalizziamo per sicurezza
+            'settore' => $user['nome_settore'], // <-- Aggiungiamo il settore
             'isResponsabile' => $isResp
         ]);
     } else {

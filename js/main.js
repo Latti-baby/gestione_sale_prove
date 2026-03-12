@@ -29,20 +29,17 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     })
     .then(data => {
         if (data.success) {
-            // PULIZIA DEL RUOLO: togliamo spazi e rendiamo tutto minuscolo
-            const ruoloPulito = data.ruolo.toString().trim().toLowerCase();
+            const ruoloPulito = data.ruolo; // Ora è già pulito dal PHP
             
             // Salvataggio dati nel browser
             localStorage.setItem('userName', data.nome);
             localStorage.setItem('userRole', ruoloPulito); 
             localStorage.setItem('userId', data.id);
             localStorage.setItem('isResponsabile', data.isResponsabile);
+            localStorage.setItem('userSettore', data.settore || ''); // <-- Salva il settore
 
-            // DEBUG: Se ancora non va, questo alert ci dirà cosa vede il JS
-            console.log("Ruolo ricevuto:", ruoloPulito);
-
-            // SMISTAMENTO CON CONTROLLO RIGIDO
-            if (ruoloPulito === 'admin') {
+            // SMISTAMENTO: controlliamo sia admin che amministratore
+            if (ruoloPulito === 'admin' || ruoloPulito === 'amministratore') {
                 alert("Accesso Amministratore confermato. Reindirizzamento...");
                 window.location.replace('admin.html');
             } else {
