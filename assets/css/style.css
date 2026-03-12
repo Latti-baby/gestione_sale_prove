@@ -45,3 +45,25 @@ body {
 .btn-primary:hover {
     background-color: #0056b3;
 }
+
+
+.admin-navbar {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.table-custom-shadow {
+    box-shadow: 0 5px 20px rgba(0,0,0,0.04);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-oggi {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 12px;
+}
+
+.card-oggi:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
