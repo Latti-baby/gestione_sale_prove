@@ -230,6 +230,6 @@ function logout() {
     })
     .then(() => {
         localStorage.clear();
-        window.location.replace('../index.php'); // <-- Reindirizzamento corretto!
+        window.location.replace('../index.php'); 
     });
 }
