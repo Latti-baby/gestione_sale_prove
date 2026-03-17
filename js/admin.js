@@ -33,7 +33,7 @@ function getColoreSettore(nomeSettore) {
 }
 
 function caricaReport() {
-    fetch('backend/get_admin_report.php')
+    fetch('../backend/get_admin_report.php')
     .then(res => res.json())
     .then(data => {
         if (data.success) {
@@ -174,7 +174,6 @@ function apriModifica(prenotazione) {
     document.getElementById('edit_attivita').value = prenotazione.attivita;
     document.getElementById('edit_data').value = prenotazione.data;
     document.getElementById('edit_ora').value = prenotazione.ora_inizio;
-    // document.getElementById('edit_durata').value = prenotazione.durata; // Rimuovi il commento se la tua API legge la durata
     new bootstrap.Modal(document.getElementById('modalModifica')).show();
 }
 
@@ -187,7 +186,7 @@ function salvaModifica() {
         durata: document.getElementById('edit_durata') ? document.getElementById('edit_durata').value : 1
     });
 
-    fetch('backendaggiorna_prenotazione.php', { method: 'POST', body: data })
+    fetch('../backend/aggiorna_prenotazione.php', { method: 'POST', body: data })
     .then(res => res.json())
     .then(res => {
         alert(res.message);
@@ -200,7 +199,7 @@ function eliminaPrenotazione(id) {
         const formData = new URLSearchParams();
         formData.append('id', id);
 
-        fetch('backend/api/elimina_prenotazione.php', {
+        fetch('../backend/api/elimina_prenotazione.php', {
             method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData.toString()
         }).then(res => res.json()).then(data => {
             if (data.success) {
@@ -211,8 +210,8 @@ function eliminaPrenotazione(id) {
 }
 
 function logout() {
-    fetch('backend/logout.php').then(() => {
+    fetch('../backend/logout.php').then(() => {
         localStorage.clear();
-        window.location.replace('index.php');
+        window.location.replace('../index.php');
     });
 }

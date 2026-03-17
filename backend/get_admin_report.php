@@ -1,7 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-require_once '../config.php';
+require_once '../Common/config.php';
 
 // Controllo sicurezza: solo l'admin può accedere
 // Supponiamo che l'admin abbia un ruolo specifico nel database o un ID fisso

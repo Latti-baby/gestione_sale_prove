@@ -1,7 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-require_once '../config.php';
+require_once '../Common/config.php';
 
 // Ricezione dati
 $id = $_POST['id'] ?? null;

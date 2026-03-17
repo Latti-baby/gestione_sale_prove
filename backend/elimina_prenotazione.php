@@ -1,7 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-require_once '../config.php';
+require_once '../Common/config.php';
 
 // Controllo sicurezza rapido (opzionale)
 if (!isset($_SESSION['user_id'])) {
