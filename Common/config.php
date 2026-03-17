@@ -1,5 +1,12 @@
 <?php
-// backend/config.php
+
+if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
+    
+    header('HTTP/1.0 403 Forbidden');
+    die(json_encode(['success' => false, 'message' => 'Accesso negato: API protetta.']));
+}
+
+
 $host = "localhost";
 $db_name = "gestione_sala_prove";
 $username = "root";

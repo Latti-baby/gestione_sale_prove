@@ -33,7 +33,7 @@ function getColoreSettore(nomeSettore) {
 }
 
 function caricaReport() {
-    fetch('../backend/get_admin_report.php')
+    fetch('../backend/get_admin_report.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
@@ -139,7 +139,6 @@ function popolaFiltroSettori(dati) {
 function renderGrafico(dati) {
     const ctx = document.getElementById('chartSettori').getContext('2d');
     
-    // Previene sovrapposizioni del grafico
     if(window.mioGrafico) { window.mioGrafico.destroy(); }
 
     const conteggio = {};
@@ -186,12 +185,14 @@ function salvaModifica() {
         durata: document.getElementById('edit_durata') ? document.getElementById('edit_durata').value : 1
     });
 
-    fetch('../backend/aggiorna_prenotazione.php', { method: 'POST', body: data })
-    .then(res => res.json())
-    .then(res => {
-        alert(res.message);
-        if(res.success) location.reload();
-    });
+    fetch('../backend/aggiorna_prenotazione.php', { 
+    method: 'POST', 
+    headers: { 
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest' 
+    },
+    body: data 
+})
 }
 
 function eliminaPrenotazione(id) {
@@ -199,19 +200,17 @@ function eliminaPrenotazione(id) {
         const formData = new URLSearchParams();
         formData.append('id', id);
 
-        fetch('../backend/elimina_prenotazione.php', {
-            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData.toString()
-        }).then(res => res.json()).then(data => {
-            if (data.success) {
-                caricaReport(); 
-            } else { alert("Errore: " + data.message); }
-        });
+       fetch('../backend/elimina_prenotazione.php', {
+    method: 'POST', 
+    headers: { 
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest' 
+    }, 
+    body: formData.toString()
+})
     }
 }
 
 function logout() {
-    fetch('../backend/logout.php').then(() => {
-        localStorage.clear();
-        window.location.replace('../index.php');
-    });
+    fetch('../backend/logout.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
 }

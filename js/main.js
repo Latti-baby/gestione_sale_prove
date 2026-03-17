@@ -15,12 +15,14 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
 
     feedback.innerHTML = '<div class="alert alert-info">Verifica in corso...</div>';
 
-    // Pulizia totale della memoria precedente
     localStorage.clear();
 
     fetch('backend/login.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: { 
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest' // <-- Firma Aggiunta
+        },
         body: 'email=' + encodeURIComponent(email)
     })
     .then(response => {
