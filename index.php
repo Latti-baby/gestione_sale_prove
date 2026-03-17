@@ -12,7 +12,7 @@
 <div class="container d-flex justify-content-center align-items-center vh-100">
     <div class="card shadow" style="width: 100%; max-width: 400px;">
         <div class="card-body">
-            <h3 class="card-title text-center mb-4">Accesso Associazione</h3>
+            <h3 class="card-title text-center mb-4">Benvenuto nella nostra associazione</h3>
             <form id="loginForm">
                 <div class="mb-3">
                     <label for="email" class="form-label">Indirizzo Email</label>
