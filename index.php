@@ -6,7 +6,6 @@
     <title>Login - Gestione Sale Prove</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-<script src="JS/main.js"></script>
 </head>
 <body class="bg-light">
 
@@ -19,11 +18,19 @@
                     <label for="email" class="form-label">Indirizzo Email</label>
                     <input type="email" class="form-control" id="email" placeholder="nome@esempio.it" required>
                 </div>
+                
                 <button type="submit" class="btn btn-primary w-100">Accedi</button>
+                
+                <div class="text-center mt-3">
+                    <p class="mb-0">Non sei ancora iscritto? <br> <a href="Frontend/registrazione.html" class="text-decoration-none fw-bold">Registrati qui</a></p>
+                </div>
+
             </form>
             <div id="loginFeedback" class="mt-3"></div>
         </div>
     </div>
 </div>
+
+<script src="JS/main.js"></script>
 </body>
 </html>
