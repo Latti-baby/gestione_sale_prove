@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     const ruolo = localStorage.getItem('userRole');
     if (ruolo === 'admin') {
-        window.location.replace('admin.html');
+        window.location.replace('Frontend/admin.html');
     } else if (ruolo) {
-        window.location.replace('dashboard.html');
+        window.location.replace('Frontend/dashboard.html');
     }
 });
 
@@ -18,7 +18,7 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     // Pulizia totale della memoria precedente
     localStorage.clear();
 
-    fetch('backend/api/login.php', {
+    fetch('backend/login.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'email=' + encodeURIComponent(email)
@@ -41,9 +41,9 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
             // SMISTAMENTO: controlliamo sia admin che amministratore
             if (ruoloPulito === 'admin' || ruoloPulito === 'amministratore') {
                 alert("Accesso Amministratore confermato. Reindirizzamento...");
-                window.location.replace('admin.html');
+                window.location.replace('Frontend/admin.html');
             } else {
-                window.location.replace('dashboard.html');
+                window.location.replace('Frontend/dashboard.html');
             }
         } else {
             feedback.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;

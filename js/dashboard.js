@@ -34,7 +34,7 @@ function caricaInviti() {
     const lista = document.getElementById('listaInviti');
     if (!lista) return;
 
-    fetch('backend/api/get_inviti.php')
+    fetch('backend/get_inviti.php')
     .then(response => response.json())
     .then(data => {
         lista.innerHTML = '';
@@ -74,7 +74,7 @@ function rispondi(idPrenotazione, stato) {
     formData.append('id_prenotazione', idPrenotazione);
     formData.append('stato', stato);
 
-    fetch('backend/api/rispondi_invito.php', {
+    fetch('backend/rispondi_invito.php', {
         method: 'POST',
         body: formData
     })
@@ -92,8 +92,8 @@ function rispondi(idPrenotazione, stato) {
 
 function logout() {
     // Chiama l'API per distruggere la sessione, poi pulisce il browser e reindirizza
-    fetch('backend/api/logout.php').then(() => {
+    fetch('backend/logout.php').then(() => {
         localStorage.clear();
-        window.location.replace('index.html');
+        window.location.replace('index.php');
     });
 }

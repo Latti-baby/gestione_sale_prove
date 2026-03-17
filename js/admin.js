@@ -33,7 +33,7 @@ function getColoreSettore(nomeSettore) {
 }
 
 function caricaReport() {
-    fetch('backend/api/get_admin_report.php')
+    fetch('backend/get_admin_report.php')
     .then(res => res.json())
     .then(data => {
         if (data.success) {
@@ -92,7 +92,7 @@ function renderTabella(dati) {
     dati.forEach(row => {
         const occupanti = `${row.confermati} / ${row.max_iscritti}`;
         const isPiena = row.confermati >= row.max_iscritti;
-        const coloreBadge = getColoreSettore(row.nome_settore); // Colore dinamico!
+        const coloreBadge = getColoreSettore(row.nome_settore); 
 
         tbody.innerHTML += `
             <tr class="${isPiena ? 'table-warning' : ''}">
@@ -130,7 +130,7 @@ function applicaFiltri() {
 function popolaFiltroSettori(dati) {
     const select = document.getElementById('filtroSettore');
     const settori = [...new Set(dati.map(item => item.nome_settore))];
-    select.innerHTML = '<option value="">Tutti i settori</option>'; // Reset
+    select.innerHTML = '<option value="">Tutti i settori</option>';
     settori.forEach(s => {
         select.innerHTML += `<option value="${s}">${s}</option>`;
     });
@@ -154,7 +154,7 @@ function renderGrafico(dati) {
             datasets: [{
                 label: 'Totale Prenotazioni per Settore',
                 data: Object.values(conteggio),
-                backgroundColor: 'rgba(13, 110, 253, 0.7)', // Blu Bootstrap moderno
+                backgroundColor: 'rgba(13, 110, 253, 0.7)', 
                 borderColor: 'rgba(13, 110, 253, 1)',
                 borderWidth: 2,
                 borderRadius: 5
@@ -187,7 +187,7 @@ function salvaModifica() {
         durata: document.getElementById('edit_durata') ? document.getElementById('edit_durata').value : 1
     });
 
-    fetch('backend/api/aggiorna_prenotazione.php', { method: 'POST', body: data })
+    fetch('backendaggiorna_prenotazione.php', { method: 'POST', body: data })
     .then(res => res.json())
     .then(res => {
         alert(res.message);
@@ -211,8 +211,8 @@ function eliminaPrenotazione(id) {
 }
 
 function logout() {
-    fetch('backend/api/logout.php').then(() => {
+    fetch('backend/logout.php').then(() => {
         localStorage.clear();
-        window.location.replace('index.html');
+        window.location.replace('index.php');
     });
 }
