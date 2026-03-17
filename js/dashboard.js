@@ -85,12 +85,17 @@ function rispondi(idPrenotazione, stato) {
             alert("Operazione completata!");
             location.reload();
         } else {
-            // QUESTO è il blocco sovrapposizione che arriva dal server
             alert("ATTENZIONE: " + data.message);
         }
     });
 }
 
 function logout() {
-   fetch('../backend/logout.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    fetch('../backend/logout.php', { 
+        headers: { 'X-Requested-With': 'XMLHttpRequest' } 
+    })
+    .then(() => {
+        localStorage.clear();
+        window.location.replace('../index.php'); 
+    });
 }

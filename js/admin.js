@@ -186,13 +186,18 @@ function salvaModifica() {
     });
 
     fetch('../backend/aggiorna_prenotazione.php', { 
-    method: 'POST', 
-    headers: { 
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest' 
-    },
-    body: data 
-})
+        method: 'POST', 
+        headers: { 
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest' 
+        },
+        body: data 
+    })
+    .then(res => res.json())
+    .then(res => {
+        alert(res.message);
+        if(res.success) location.reload();
+    });
 }
 
 function eliminaPrenotazione(id) {
@@ -200,17 +205,31 @@ function eliminaPrenotazione(id) {
         const formData = new URLSearchParams();
         formData.append('id', id);
 
-       fetch('../backend/elimina_prenotazione.php', {
-    method: 'POST', 
-    headers: { 
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest' 
-    }, 
-    body: formData.toString()
-})
+        fetch('../backend/elimina_prenotazione.php', {
+            method: 'POST', 
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest' 
+            }, 
+            body: formData.toString()
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                caricaReport(); 
+            } else { 
+                alert("Errore: " + data.message); 
+            }
+        });
     }
 }
 
 function logout() {
-    fetch('../backend/logout.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    fetch('../backend/logout.php', { 
+        headers: { 'X-Requested-With': 'XMLHttpRequest' } 
+    })
+    .then(() => {
+        localStorage.clear();
+        window.location.replace('../index.php'); // <-- Reindirizzamento corretto!
+    });
 }
