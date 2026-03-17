@@ -199,7 +199,7 @@ function eliminaPrenotazione(id) {
         const formData = new URLSearchParams();
         formData.append('id', id);
 
-        fetch('../backend/api/elimina_prenotazione.php', {
+        fetch('../backend/elimina_prenotazione.php', {
             method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData.toString()
         }).then(res => res.json()).then(data => {
             if (data.success) {
