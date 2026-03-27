@@ -87,6 +87,29 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="modalRifiuto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Rifiuta Invito</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formRifiuto">
+                    <input type="hidden" id="rifiuto_id_prenotazione">
+                    <div class="mb-3">
+                        <label class="form-label">Motivazione (Obbligatoria)</label>
+                        <textarea class="form-control" id="rifiuto_motivazione" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-danger" onclick="confermaRifiuto()">Invia Rifiuto</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/dashboard.js"></script>

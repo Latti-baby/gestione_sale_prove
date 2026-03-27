@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Il Mio Profilo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a href="dashboard.html" class="navbar-brand">← Torna alla Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card shadow-sm border-0 mx-auto" style="max-width: 600px;">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Gestione Profilo</h4>
+            </div>
+            <div class="card-body">
+                <form id="formProfilo" enctype="multipart/form-data">
+                    <div class="mb-3 text-center">
+                        <img id="fotoPreview" src="../Immagini/default.png" alt="Foto Profilo" class="rounded-circle border" style="width: 120px; height: 120px; object-fit: cover;">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="prof_nome" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Cognome</label>
+                            <input type="text" class="form-control" id="prof_cognome" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="prof_email" disabled>
+                        <small class="text-muted">L'email non può essere modificata.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Data di Nascita</label>
+                        <input type="date" class="form-control" id="prof_data">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Aggiorna Foto Profilo</label>
+                        <input type="file" class="form-control" id="prof_foto" accept="image/*">
+                    </div>
+
+                    <div id="profiloFeedback"></div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">Salva Modifiche</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Carica i dati attuali
+        fetch('../backend/gestione_profilo.php?action=get')
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                document.getElementById('prof_nome').value = data.user.nome;
+                document.getElementById('prof_cognome').value = data.user.cognome;
+                document.getElementById('prof_email').value = data.user.email;
+                if(data.user.data_nascita) document.getElementById('prof_data').value = data.user.data_nascita;
+                if(data.user.foto) document.getElementById('fotoPreview').src = '../Immagini/' + data.user.foto;
+            }
+        });
+    });
+
+    document.getElementById('formProfilo').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('nome', document.getElementById('prof_nome').value);
+        formData.append('cognome', document.getElementById('prof_cognome').value);
+        formData.append('data_nascita', document.getElementById('prof_data').value);
+        
+        const fotoInput = document.getElementById('prof_foto');
+        if(fotoInput.files.length > 0) formData.append('foto', fotoInput.files[0]);
+
+        fetch('../backend/gestione_profilo.php?action=update', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            const feedback = document.getElementById('profiloFeedback');
+            if(data.success) {
+                feedback.innerHTML = '<div class="alert alert-success">Profilo aggiornato con successo!</div>';
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                feedback.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+            }
+        });
+    });
+    </script>
+</body>
+</html>

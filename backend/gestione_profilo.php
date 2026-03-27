@@ -44,6 +44,7 @@ function caricaInviti() {
                 const isPiena = (invito.confermati >= invito.max_iscritti) && (invito.stato !== 'confermato');
                 const giaConfermato = invito.stato === 'confermato';
 
+                // --- LOGICA BOTTONI AGGIORNATA ---
                 let bottoniAzioni = '';
                 if (invito.stato === 'in attesa') {
                     bottoniAzioni = `
@@ -117,17 +118,3 @@ function rispondi(idPrenotazione, stato, motivazione = null) {
         if (data.success) {
             location.reload();
         } else {
-            alert("ATTENZIONE: " + data.message);
-        }
-    });
-}
-
-function logout() {
-    fetch('../backend/logout.php', { 
-        headers: { 'X-Requested-With': 'XMLHttpRequest' } 
-    })
-    .then(() => {
-        localStorage.clear();
-        window.location.replace('../index.php'); 
-    });
-}
