@@ -7,7 +7,6 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
-
 </head>
 
 <body class="bg-light">
@@ -15,11 +14,11 @@
     <nav class="navbar navbar-dark bg-dark mb-4">
         <div class="container">
             <span class="navbar-brand">Sistema Prenotazione Sale</span>
-                <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center">
                 <span id="userName" class="navbar-text me-3 text-white fw-bold"></span>
                 <a href="profilo.html" class="btn btn-outline-info btn-sm me-2">Mio Profilo</a>
                 <button class="btn btn-outline-danger btn-sm" onclick="logout()">Logout</button>
-                </div>
+            </div>
         </div>
     </nav>
 
@@ -28,7 +27,7 @@
             <div class="card border-primary shadow-sm">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <span>Pannello Responsabile</span>
-                    <button class="btn btn-light btn-sm" onclick="apriModalePrenotazione()">Nuova Prenotazione +</button>
+                    <button class="btn btn-light btn-sm fw-bold text-primary" onclick="apriModalePrenotazione()">Nuova Prenotazione +</button>
                 </div>
                 <div class="card-body">
                     <p class="mb-0">Gestisci le sale del tuo settore e crea nuovi eventi.</p>
@@ -37,106 +36,65 @@
         </div>
 
         <div id="sezioneIscritto">
-            <h4 class="mb-3">I Miei Inviti</h4>
+            <h4 class="mb-3 text-primary fw-bold">I Miei Inviti</h4>
             <div id="listaInviti" class="row">
                 <div class="col-12 text-center py-5">
                     <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-2">Caricamento inviti...</p>
+                    <p class="mt-2 text-muted fw-bold">Caricamento inviti...</p>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="modal fade" id="modalPrenotazione" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Nuova Prenotazione</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formPrenotazione">
-                        <div class="mb-3">
-                            <label class="form-label">Seleziona Sala</label>
-                            <select class="form-select" id="id_sala" required></select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Attività</label>
-                            <input type="text" class="form-control" id="attivita" placeholder="es. Prove Orchestra" required>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Data</label>
-                                <input type="date" class="form-control" id="data_pren" required>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Inizio</label>
-                                <input type="number" class="form-control" id="ora_p" min="9" max="23" value="9" required>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Durata</label>
-                                <input type="number" class="form-control" id="durata_p" min="1" max="5" value="1" required>
-                            </div>
-                        </div>
-                        <div id="feedbackPrenotazione"></div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="submit" form="formPrenotazione" class="btn btn-primary">Verifica e Salva</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="modalPrenotazione" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content">
+            <div class="modal-content shadow-lg border-0">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Pianifica Nuova Prova</h5>
+                    <h5 class="modal-title fw-bold">Pianifica Nuova Prova</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body bg-light">
                     <form id="formPrenotazione">
-                        <div class="row">
+                        <div class="row bg-white p-3 rounded shadow-sm mb-3">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">Seleziona Sala</label>
-                                <select class="form-select" id="id_sala" required>
+                                <label class="form-label fw-bold small text-muted">Seleziona Sala</label>
+                                <select class="form-select border-primary" id="id_sala" required>
                                     <option value="">Caricamento sale...</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">Attività</label>
+                                <label class="form-label fw-bold small text-muted">Attività</label>
                                 <input type="text" class="form-control" id="attivita" placeholder="es. Prove Teatro" required>
                             </div>
                         </div>
-                        <div class="row">
+
+                        <div class="row bg-white p-3 rounded shadow-sm mb-3">
                             <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold small">Data</label>
+                                <label class="form-label fw-bold small text-muted">Data</label>
                                 <input type="date" class="form-control" id="data_pren" required>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold small">Ora Inizio (9-23)</label>
+                                <label class="form-label fw-bold small text-muted">Ora Inizio (9-23)</label>
                                 <input type="number" class="form-control" id="ora_p" min="9" max="23" value="15" required>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold small">Durata (Ore)</label>
+                                <label class="form-label fw-bold small text-muted">Durata (Ore)</label>
                                 <input type="number" class="form-control" id="durata_p" min="1" max="5" value="1" required>
                             </div>
                         </div>
                         
-                        <hr>
-                        <h6 class="fw-bold text-primary mb-3">Chi vuoi invitare?</h6>
-                        <div class="row">
+                        <div class="row bg-white p-3 rounded shadow-sm">
+                            <h6 class="fw-bold text-primary mb-3">Chi vuoi invitare?</h6>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">Categoria Inviti</label>
-                                <select class="form-select" id="tipo_invito" required>
+                                <label class="form-label fw-bold small text-muted">Categoria Inviti</label>
+                                <select class="form-select border-info" id="tipo_invito" required>
                                     <option value="tutti">Tutti gli iscritti</option>
                                     <option value="settore">Iscritti del mio Settore</option>
                                     <option value="ruolo">Iscritti con un Ruolo specifico</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3 d-none" id="divDettaglioRuolo">
-                                <label class="form-label fw-bold small">Seleziona Ruolo</label>
+                                <label class="form-label fw-bold small text-muted">Seleziona Ruolo</label>
                                 <select class="form-select" id="valore_ruolo">
                                     <option value="allievo">Allievo</option>
                                     <option value="docente">Docente</option>
@@ -145,15 +103,42 @@
                             </div>
                         </div>
                         
-                        <div id="feedbackPrenotazione"></div>
+                        <div id="feedbackPrenotazione" class="mt-3"></div>
                     </form>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer bg-white border-top-0">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="submit" form="formPrenotazione" class="btn btn-primary fw-bold">Salva e Invia Inviti</button>
+                    <button type="submit" form="formPrenotazione" class="btn btn-primary fw-bold px-4">Salva e Invia Inviti</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modalRifiuto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Rifiuta Invito</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formRifiuto">
+                        <input type="hidden" id="rifiuto_id_prenotazione">
+                        <div class="mb-3">
+                            <label class="form-label">Motivazione (Obbligatoria)</label>
+                            <textarea class="form-control" id="rifiuto_motivazione" rows="3" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-danger" onclick="confermaRifiuto()">Invia Rifiuto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/dashboard.js"></script>
 </body>
 </html>

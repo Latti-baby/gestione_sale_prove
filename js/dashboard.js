@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const settore = localStorage.getItem('userSettore');
     const isResp = localStorage.getItem('isResponsabile') === 'true';
 
-    // 1. SMISTAMENTO: Se sei admin, vai al pannello admin
+    // 1. SMISTAMENTO
     if (ruolo === 'admin' || ruolo === 'amministratore') {
         window.location.replace('admin.html');
         return;
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('userName').textContent = testoNavbar;
     }
 
-    // 3. Mostra la sezione responsabile se lo sei
+    // 3. Mostra la sezione responsabile
     const sezioneResp = document.getElementById('sezioneResponsabile');
     if (sezioneResp && isResp) {
         sezioneResp.classList.remove('d-none');
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 4. Carica gli inviti
     caricaInviti();
 
-    // 5. EVENT LISTENERS PER LA NUOVA MODALE (Gestione Ruolo e Submit)
+    // 5. EVENT LISTENERS PER LA NUOVA MODALE
     const tipoInvito = document.getElementById('tipo_invito');
     if (tipoInvito) {
         tipoInvito.addEventListener('change', function() {
@@ -117,8 +117,8 @@ function caricaInviti() {
                     <div class="col-md-6 mb-3">
                         <div class="card h-100 shadow-sm border-start ${giaConfermato ? 'border-success' : 'border-primary'} border-4">
                             <div class="card-body">
-                                <h5 class="card-title ${giaConfermato ? 'text-success' : 'text-primary'}">${invito.attivita}</h5>
-                                <p class="card-text mb-2">
+                                <h5 class="card-title ${giaConfermato ? 'text-success' : 'text-primary'} fw-bold">${invito.attivita}</h5>
+                                <p class="card-text mb-2 text-muted">
                                     📍 <strong>Sala:</strong> ${invito.nome_sala}<br>
                                     👥 <strong>Posti:</strong> <span class="badge ${isPiena ? 'bg-danger' : 'bg-secondary'}">${occupazione}</span><br>
                                     📅 <strong>Data:</strong> ${invito.data}<br>
