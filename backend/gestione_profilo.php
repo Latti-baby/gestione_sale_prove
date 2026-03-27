@@ -1,120 +1,61 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const ruolo = localStorage.getItem('userRole');
-    const nome = localStorage.getItem('userName');
-    const settore = localStorage.getItem('userSettore');
-    const isResp = localStorage.getItem('isResponsabile') === 'true';
+<?php
+session_start();
+header('Content-Type: application/json');
+require_once '../Common/config.php';
 
-    // 1. SMISTAMENTO: Se sei admin o amministratore, via di qui!
-    if (ruolo === 'admin' || ruolo === 'amministratore') {
-        window.location.replace('admin.html');
-        return;
-    }
-
-    if (document.getElementById('userName') && nome) {
-        // Formatta il testo in base al ruolo e al settore
-        let testoNavbar = "Ciao, " + nome;
-        if (isResp && settore) {
-            testoNavbar += " (Responsabile " + settore + ")";
-        } else if (settore) {
-            testoNavbar += " (" + settore + ")";
-        }
-        document.getElementById('userName').textContent = testoNavbar;
-    }
-
-    const sezioneResp = document.getElementById('sezioneResponsabile');
-    if (sezioneResp && isResp) {
-        sezioneResp.classList.remove('d-none');
-    }
-
-    caricaInviti();
-});
-
-
-function caricaInviti() {
-    const lista = document.getElementById('listaInviti');
-    if (!lista) return;
-
-    fetch('../backend/get_inviti.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-    .then(response => response.json())
-    .then(data => {
-        lista.innerHTML = '';
-        if (data.success && data.inviti) {
-            data.inviti.forEach(invito => {
-                const occupazione = `${invito.confermati || 0} / ${invito.max_iscritti || 0}`;
-                const isPiena = (invito.confermati >= invito.max_iscritti) && (invito.stato !== 'confermato');
-                const giaConfermato = invito.stato === 'confermato';
-
-                // --- LOGICA BOTTONI AGGIORNATA ---
-                let bottoniAzioni = '';
-                if (invito.stato === 'in attesa') {
-                    bottoniAzioni = `
-                        <button class="btn btn-sm btn-outline-success" onclick="rispondi(${invito.id}, 'confermato')">Accetta</button>
-                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="apriModaleRifiuto(${invito.id})">Rifiuta</button>
-                    `;
-                    if (isPiena) bottoniAzioni = '<small class="text-danger fw-bold">Posti esauriti</small>';
-                } else if (invito.stato === 'confermato') {
-                    bottoniAzioni = `
-                        <button class="btn btn-sm btn-warning text-dark shadow-sm" onclick="rispondi(${invito.id}, 'annullato')">Annulla Disponibilità</button>
-                    `;
-                } else if (invito.stato === 'rifiutato' || invito.stato === 'annullato') {
-                    bottoniAzioni = `<small class="text-muted">Hai declinato/annullato</small>`;
-                }
-
-                lista.innerHTML += `
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 shadow-sm border-start ${giaConfermato ? 'border-success' : 'border-primary'} border-4">
-                            <div class="card-body">
-                                <h5 class="card-title ${giaConfermato ? 'text-success' : 'text-primary'}">${invito.attivita}</h5>
-                                <p class="card-text">
-                                    📍 <strong>Sala:</strong> ${invito.nome_sala}<br>
-                                    👥 <strong>Posti:</strong> <span class="badge ${isPiena ? 'bg-danger' : 'bg-secondary'}">${occupazione}</span><br>
-                                    📅 <strong>Data:</strong> ${invito.data}<br>
-                                    🕒 <strong>Ore:</strong> ${invito.ora_inizio}:00 (${invito.durata}h)
-                                </p>
-                                <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-2">
-                                    <span class="badge ${giaConfermato ? 'bg-success' : (invito.stato === 'rifiutato' ? 'bg-danger' : 'bg-info')}">${invito.stato}</span>
-                                    <div>${bottoniAzioni}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            });
-        }
-    });
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'message' => 'Non autorizzato']);
+    exit;
 }
 
-function apriModaleRifiuto(idPrenotazione) {
-    document.getElementById('rifiuto_id_prenotazione').value = idPrenotazione;
-    document.getElementById('rifiuto_motivazione').value = '';
-    new bootstrap.Modal(document.getElementById('modalRifiuto')).show();
-}
+$user_id = $_SESSION['user_id'];
+$action = $_GET['action'] ?? '';
 
-function confermaRifiuto() {
-    const id = document.getElementById('rifiuto_id_prenotazione').value;
-    const motivazione = document.getElementById('rifiuto_motivazione').value.trim();
+if ($action === 'get') {
+    // PRELEVA DATI
+    $stmt = $pdo->prepare("SELECT nome, cognome, email, data_nascita, foto FROM iscritti WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    if (motivazione === '') {
-        alert("Devi inserire una motivazione per il rifiuto.");
-        return;
+    if ($user) {
+        echo json_encode(['success' => true, 'user' => $user]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Utente non trovato']);
     }
-    rispondi(id, 'rifiutato', motivazione);
-}
+} 
+elseif ($action === 'update') {
+    // AGGIORNA DATI
+    $nome = $_POST['nome'] ?? '';
+    $cognome = $_POST['cognome'] ?? '';
+    $data_nascita = $_POST['data_nascita'] ?? null;
+    
+    if (!$nome || !$cognome) {
+        echo json_encode(['success' => false, 'message' => 'Nome e cognome sono obbligatori']);
+        exit;
+    }
 
-function rispondi(idPrenotazione, stato, motivazione = null) {
-    if (stato === 'annullato' && !confirm("Sei sicuro di voler annullare la tua disponibilità?")) return;
-
-    const formData = new URLSearchParams();
-    formData.append('id_prenotazione', idPrenotazione);
-    formData.append('stato', stato);
-    if (motivazione) formData.append('motivazione', motivazione);
-
-    fetch('../backend/rispondi_invito.php', {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
+    try {
+        // Gestione aggiornamento foto
+        if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = '../Immagini/';
+            $estensione = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
+            $nomeFoto = time() . '_' . uniqid() . '.' . $estensione;
+            
+            if (move_uploaded_file($_FILES['foto']['tmp_name'], $uploadDir . $nomeFoto)) {
+                $stmt = $pdo->prepare("UPDATE iscritti SET nome = ?, cognome = ?, data_nascita = ?, foto = ? WHERE id = ?");
+                $stmt->execute([$nome, $cognome, $data_nascita, $nomeFoto, $user_id]);
+            }
         } else {
+            // Aggiornamento senza foto
+            $stmt = $pdo->prepare("UPDATE iscritti SET nome = ?, cognome = ?, data_nascita = ? WHERE id = ?");
+            $stmt->execute([$nome, $cognome, $data_nascita, $user_id]);
+        }
+
+        // Aggiorna nome in sessione
+        $_SESSION['userName'] = $nome; 
+        
+        echo json_encode(['success' => true]);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'Errore DB: ' . $e->getMessage()]);
+    }
+}
