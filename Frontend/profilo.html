@@ -14,47 +14,47 @@
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container pb-5">
         <div class="card shadow-sm border-0 mx-auto" style="max-width: 600px;">
             <div class="card-header bg-primary text-white">
                 <h4 class="mb-0">Gestione Profilo</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form id="formProfilo" enctype="multipart/form-data">
-                    <div class="mb-3 text-center">
-                        <img id="fotoPreview" src="../Immagini/default.png" alt="Foto Profilo" class="rounded-circle border" style="width: 120px; height: 120px; object-fit: cover;">
+                    <div class="mb-4 text-center">
+                        <img id="fotoPreview" src="../Immagini/default.png" alt="Foto Profilo" class="rounded-circle border border-3 shadow-sm" style="width: 150px; height: 150px; object-fit: cover;">
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Nome</label>
+                            <label class="form-label fw-bold small">Nome</label>
                             <input type="text" class="form-control" id="prof_nome" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Cognome</label>
+                            <label class="form-label fw-bold small">Cognome</label>
                             <input type="text" class="form-control" id="prof_cognome" required>
                         </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" id="prof_email" disabled>
-                        <small class="text-muted">L'email non può essere modificata.</small>
+                        <label class="form-label fw-bold small">Email</label>
+                        <input type="email" class="form-control bg-light" id="prof_email" disabled>
+                        <small class="text-muted">L'email è usata per il login e non può essere modificata.</small>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Data di Nascita</label>
+                        <label class="form-label fw-bold small">Data di Nascita</label>
                         <input type="date" class="form-control" id="prof_data">
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label">Aggiorna Foto Profilo</label>
+                        <label class="form-label fw-bold small">Aggiorna Foto Profilo</label>
                         <input type="file" class="form-control" id="prof_foto" accept="image/*">
                     </div>
 
                     <div id="profiloFeedback"></div>
                     
-                    <button type="submit" class="btn btn-primary w-100">Salva Modifiche</button>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Salva Modifiche</button>
                 </form>
             </div>
         </div>
@@ -62,7 +62,7 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Carica i dati attuali
+        // Al caricamento, scarico i dati dal database e li metto nei campi
         fetch('../backend/gestione_profilo.php?action=get')
         .then(res => res.json())
         .then(data => {

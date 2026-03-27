@@ -1,7 +1,6 @@
 <?php
-// backend/api/get_inviti.php
+// backend/get_inviti.php
 
-// 1. Impedisce a PHP di inviare errori testuali che rompono il JSON
 error_reporting(0); 
 ini_set('display_errors', 0);
 
@@ -10,7 +9,6 @@ require_once '../Common/config.php';
 
 session_start();
 
-// 2. Controllo sessione
 $user_id = $_SESSION['user_id'] ?? null;
 
 if (!$user_id) {
@@ -19,6 +17,7 @@ if (!$user_id) {
 }
 
 try {
+    // Aggiunto filtro CURDATE() e ordinamento ORDER BY
     $stmt = $pdo->prepare("
         SELECT p.*, 
                s.nome as nome_sala, 
@@ -30,7 +29,8 @@ try {
         JOIN prenotazioni p ON part.id_prenotazione = p.id
         JOIN sale s ON p.id_sala = s.id
         JOIN iscritti i ON p.id_responsabile = i.id
-        WHERE part.id_iscritto = ?
+        WHERE part.id_iscritto = ? AND p.data >= CURDATE()
+        ORDER BY p.data ASC, p.ora_inizio ASC
     ");
     $stmt->execute([$user_id]);
     $inviti = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -38,7 +38,6 @@ try {
     echo json_encode(['success' => true, 'inviti' => $inviti]);
 
 } catch (PDOException $e) {
-    // Restituiamo l'errore in formato JSON invece di farlo stampare a PHP
     echo json_encode(['success' => false, 'message' => 'Errore database: ' . $e->getMessage()]);
 }
 ?>
