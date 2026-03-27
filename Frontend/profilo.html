@@ -60,10 +60,12 @@
         </div>
     </div>
 
-    <script>
+<script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Al caricamento, scarico i dati dal database e li metto nei campi
-        fetch('../backend/gestione_profilo.php?action=get')
+        
+        fetch('../backend/gestione_profilo.php?action=get', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
         .then(res => res.json())
         .then(data => {
             if(data.success) {
@@ -86,8 +88,10 @@
         const fotoInput = document.getElementById('prof_foto');
         if(fotoInput.files.length > 0) formData.append('foto', fotoInput.files[0]);
 
+        
         fetch('../backend/gestione_profilo.php?action=update', {
             method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
             body: formData
         })
         .then(res => res.json())
@@ -95,6 +99,8 @@
             const feedback = document.getElementById('profiloFeedback');
             if(data.success) {
                 feedback.innerHTML = '<div class="alert alert-success">Profilo aggiornato con successo!</div>';
+            
+                localStorage.setItem('userName', document.getElementById('prof_nome').value);
                 setTimeout(() => location.reload(), 1500);
             } else {
                 feedback.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
