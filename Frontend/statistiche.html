@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Statistiche e Query</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a href="dashboard.html" class="navbar-brand fw-bold">← Torna alla Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        <h3 class="mb-4 text-primary fw-bold">Statistiche e Interrogazioni Complesse (Operazioni)</h3>
+
+        <div class="card shadow-sm border-0 mb-5">
+            <div class="card-header bg-white border-bottom border-primary border-3 py-3">
+                <h5 class="mb-0 fw-bold">📅 Conteggio Prenotazioni (Per Giorno e Sala)</h5>
+                <small class="text-muted">Rif. Consegna 3b: Prenotazioni organizzate o a cui sono stato invitato</small>
+            </div>
+            <div class="card-body bg-light">
+                <div class="table-responsive bg-white p-3 rounded shadow-sm">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th>Data</th><th>Sala</th><th>Totale Prenotazioni</th></tr>
+                        </thead>
+                        <tbody id="tabellaConteggio">
+                            <tr><td colspan="3" class="text-center text-muted">Caricamento in corso...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom border-danger border-3 py-3">
+                <h5 class="mb-0 fw-bold text-danger">🔥 Prenotazioni Straordinarie (Sovraffollate)</h5>
+                <small class="text-muted">Rif. Consegna 3e: Partecipanti > numero totale di membri del settore dell'organizzatore</small>
+            </div>
+            <div class="card-body bg-light">
+                <div class="table-responsive bg-white p-3 rounded shadow-sm">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th>Attività</th><th>Sala & Data</th><th>Partecipanti / Iscritti Settore Org.</th></tr>
+                        </thead>
+                        <tbody id="tabellaComplesse">
+                            <tr><td colspan="3" class="text-center text-muted">Caricamento in corso...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('../backend/get_statistiche.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.json())
+            .then(data => {
+                if(!data.success) { alert(data.message); return; }
+
+                // Popola Tabella 3b
+                const tbody3b = document.getElementById('tabellaConteggio');
+                tbody3b.innerHTML = data.conteggio.length === 0 ? '<tr><td colspan="3" class="text-center">Nessun dato.</td></tr>' : '';
+                data.conteggio.forEach(row => {
+                    tbody3b.innerHTML += `<tr>
+                        <td><strong>${row.data}</strong></td>
+                        <td>${row.nome_sala}</td>
+                        <td><span class="badge bg-primary rounded-pill fs-6">${row.num_prenotazioni}</span></td>
+                    </tr>`;
+                });
+
+                // Popola Tabella 3e
+                const tbody3e = document.getElementById('tabellaComplesse');
+                tbody3e.innerHTML = data.complesse.length === 0 ? '<tr><td colspan="3" class="text-center">Nessuna prenotazione soddisfa i requisiti.</td></tr>' : '';
+                data.complesse.forEach(row => {
+                    tbody3e.innerHTML += `<tr>
+                        <td><strong>${row.attivita}</strong></td>
+                        <td>${row.nome_sala} <br><small class="text-muted">${row.data} (Ore ${row.ora_inizio}:00)</small></td>
+                        <td><span class="badge bg-danger fs-6">${row.num_partecipanti}</span> <span class="text-muted mx-2">contro</span> <span class="badge bg-secondary fs-6">${row.num_iscritti_settore}</span></td>
+                    </tr>`;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
