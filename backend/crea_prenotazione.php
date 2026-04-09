@@ -21,6 +21,11 @@ if (!$id_sala || !$attivita || !$data || !$ora_inizio) {
     echo json_encode(['success' => false, 'message' => 'Compila tutti i campi obbligatori']);
     exit;
 }
+$oggi = date('Y-m-d');
+if ($data < $oggi) {
+    echo json_encode(['success' => false, 'message' => 'Errore: Non puoi creare una prenotazione in una data passata.']);
+    exit;
+}
 
 try {
     // 1. CONTROLLO SOVRAPPOSIZIONI (Operazione 3c del PDF)

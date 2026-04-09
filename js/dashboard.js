@@ -154,7 +154,12 @@ function apriModalePrenotazione() {
         }
     });
 
-    document.getElementById('data_pren').value = new Date().toISOString().split('T')[0];
+    // Imposta la data di oggi come valore di default e come limite minimo (min)
+    const inputData = document.getElementById('data_pren');
+    const oggi = new Date().toISOString().split('T')[0];
+    inputData.value = oggi;
+    inputData.min = oggi; // Questo impedisce all'utente di cliccare giorni passati nel calendario
+    
     new bootstrap.Modal(document.getElementById('modalPrenotazione')).show();
 }
 
