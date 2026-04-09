@@ -14,23 +14,27 @@ if (!$nome || !$email || !$password) {
     exit;
 }
 
-// 1. Gestione del caricamento Foto
+// 1. Gestione del caricamento Foto in sicurezza
 $nomeFoto = 'default.png';
 if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
-    $uploadDir = '../Immagini/';
+    $estensione = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+    $estensioni_ammesse = ['jpg', 'jpeg', 'png', 'gif'];
     
-    // Crea la cartella Immagini se non l'hai ancora creata
+    if (!in_array($estensione, $estensioni_ammesse)) {
+        echo json_encode(['success' => false, 'message' => 'Formato file non supportato. Usa solo JPG, PNG o GIF.']);
+        exit;
+    }
+
+    $uploadDir = '../Immagini/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
     }
     
-    $estensione = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
-    // Genera un nome univoco per l'immagine per evitare sovrapposizioni
     $nomeFoto = time() . '_' . uniqid() . '.' . $estensione;
     move_uploaded_file($_FILES['foto']['tmp_name'], $uploadDir . $nomeFoto);
 }
 
-// 2. Criptiamo la password (fondamentale per la sicurezza e per i voti alti!)
+// 2. Criptiamo la password
 $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
 try {

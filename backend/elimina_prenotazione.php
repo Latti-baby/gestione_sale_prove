@@ -3,9 +3,9 @@ session_start();
 header('Content-Type: application/json');
 require_once '../Common/config.php';
 
-// Controllo sicurezza rapido (opzionale)
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['success' => false, 'message' => 'Non autorizzato']);
+// Controllo sicurezza: solo l'amministratore può eliminare prenotazioni
+if (!isset($_SESSION['user_id']) || ($_SESSION['ruolo'] !== 'admin' && $_SESSION['ruolo'] !== 'amministratore')) {
+    echo json_encode(['success' => false, 'message' => 'Azione non consentita: permessi insufficienti.']);
     exit;
 }
 
@@ -29,3 +29,4 @@ try {
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Errore database: ' . $e->getMessage()]);
 }
+?>

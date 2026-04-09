@@ -19,6 +19,11 @@
                     <input type="email" class="form-control" id="email" placeholder="nome@esempio.it" required>
                 </div>
                 
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" required>
+                </div>
+                
                 <button type="submit" class="btn btn-primary w-100">Accedi</button>
                 
                 <div class="text-center mt-3">
@@ -31,6 +36,6 @@
     </div>
 </div>
 
-<script src="JS/main.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

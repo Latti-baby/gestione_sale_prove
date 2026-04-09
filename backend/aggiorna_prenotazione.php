@@ -3,9 +3,15 @@ session_start();
 header('Content-Type: application/json');
 require_once '../Common/config.php';
 
-// Ricezione dati
+// Controllo sicurezza: solo l'amministratore può forzare le modifiche
+if (!isset($_SESSION['user_id']) || ($_SESSION['ruolo'] !== 'admin' && $_SESSION['ruolo'] !== 'amministratore')) {
+    echo json_encode(['success' => false, 'message' => 'Azione non consentita: permessi insufficienti.']);
+    exit;
+}
+
+// Ricezione dati con pulizia da eventuali script malevoli (XSS)
 $id = $_POST['id'] ?? null;
-$attivita = $_POST['attivita'] ?? '';
+$attivita = htmlspecialchars($_POST['attivita'] ?? '', ENT_QUOTES, 'UTF-8');
 $data = $_POST['data'] ?? '';
 $ora = $_POST['ora_inizio'] ?? '';
 $durata = $_POST['durata'] ?? '';
@@ -16,9 +22,6 @@ if (!$id || !$attivita || !$data || !$ora) {
 }
 
 try {
-    // 1. (Opzionale) Controllo sovrapposizioni anche in fase di modifica
-    // Qui l'admin ha il potere di forzare, ma potresti aggiungere un check simile a quello del salvataggio
-
     $stmt = $pdo->prepare("UPDATE prenotazioni SET attivita = ?, data = ?, ora_inizio = ?, durata = ? WHERE id = ?");
     $stmt->execute([$attivita, $data, $ora, $durata, $id]);
 
@@ -26,3 +29,4 @@ try {
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Errore DB: ' . $e->getMessage()]);
 }
+?>

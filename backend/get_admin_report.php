@@ -3,9 +3,12 @@ session_start();
 header('Content-Type: application/json');
 require_once '../Common/config.php';
 
-// Controllo sicurezza: solo l'admin può accedere
-// Supponiamo che l'admin abbia un ruolo specifico nel database o un ID fisso
-// if ($_SESSION['user_role'] !== 'admin') { die("Accesso negato"); }
+// Controllo di sicurezza Reale
+if (!isset($_SESSION['user_id']) || ($_SESSION['ruolo'] !== 'admin' && $_SESSION['ruolo'] !== 'amministratore')) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Accesso negato']);
+    exit;
+}
 
 try {
     $sql = "SELECT 
@@ -29,3 +32,4 @@ try {
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
+?>

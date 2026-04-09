@@ -10,7 +10,8 @@ if (!$user_id) {
 }
 
 $id_sala = $_POST['id_sala'] ?? '';
-$attivita = $_POST['attivita'] ?? '';
+// Previene l'esecuzione di script malevoli (XSS)
+$attivita = htmlspecialchars($_POST['attivita'] ?? '', ENT_QUOTES, 'UTF-8');
 $data = $_POST['data'] ?? '';
 $ora_inizio = (int)$_POST['ora_inizio'] ?? 0;
 $durata = (int)$_POST['durata'] ?? 1;
@@ -21,6 +22,8 @@ if (!$id_sala || !$attivita || !$data || !$ora_inizio) {
     echo json_encode(['success' => false, 'message' => 'Compila tutti i campi obbligatori']);
     exit;
 }
+
+// CONTROLLO DATA: Impedisci di creare eventi nel passato
 $oggi = date('Y-m-d');
 if ($data < $oggi) {
     echo json_encode(['success' => false, 'message' => 'Errore: Non puoi creare una prenotazione in una data passata.']);
@@ -28,8 +31,7 @@ if ($data < $oggi) {
 }
 
 try {
-    // 1. CONTROLLO SOVRAPPOSIZIONI (Operazione 3c del PDF)
-    // Controlliamo se la sala è occupata nella stessa data e in un orario che si accavalla
+    // 1. CONTROLLO SOVRAPPOSIZIONI
     $fine_nuova = $ora_inizio + $durata;
     
     $checkSala = $pdo->prepare("
@@ -44,12 +46,11 @@ try {
         exit;
     }
 
-    // Troviamo il settore di chi sta organizzando (per l'invito per settore)
     $stmtUser = $pdo->prepare("SELECT id_settore FROM iscritti WHERE id = ?");
     $stmtUser->execute([$user_id]);
     $id_settore_org = $stmtUser->fetchColumn();
 
-    $pdo->beginTransaction(); // Iniziamo una transazione sicura
+    $pdo->beginTransaction(); 
 
     // 2. INSERIMENTO PRENOTAZIONE
     $insPren = $pdo->prepare("INSERT INTO prenotazioni (id_sala, id_responsabile, attivita, data, ora_inizio, durata) VALUES (?, ?, ?, ?, ?, ?)");
@@ -72,7 +73,7 @@ try {
     $stmtIscr->execute($paramsIscritti);
     $iscrittiDaInvitare = $stmtIscr->fetchAll(PDO::FETCH_COLUMN);
 
-    // 4. INVIO DEGLI INVITI (Inserimento in `partecipazioni`)
+    // 4. INVIO DEGLI INVITI
     if (count($iscrittiDaInvitare) > 0) {
         $insPart = $pdo->prepare("INSERT INTO partecipazioni (id_prenotazione, id_iscritto, stato) VALUES (?, ?, 'in attesa')");
         foreach ($iscrittiDaInvitare as $id_iscritto) {
@@ -80,12 +81,12 @@ try {
         }
     }
 
-    $pdo->commit(); // Conferma tutto nel database
+    $pdo->commit(); 
 
     echo json_encode(['success' => true]);
 
 } catch (PDOException $e) {
-    $pdo->rollBack(); // Se c'è un errore, annulla tutto
+    $pdo->rollBack(); 
     echo json_encode(['success' => false, 'message' => 'Errore DB: ' . $e->getMessage()]);
 }
 ?>

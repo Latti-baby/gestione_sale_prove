@@ -12,7 +12,6 @@ $user_id = $_SESSION['user_id'];
 $action = $_GET['action'] ?? '';
 
 if ($action === 'get') {
-    // PRELEVA DATI UTENTE
     $stmt = $pdo->prepare("SELECT nome, cognome, email, data_nascita, foto FROM iscritti WHERE id = ?");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -24,7 +23,6 @@ if ($action === 'get') {
     }
 } 
 elseif ($action === 'update') {
-    // AGGIORNA DATI UTENTE
     $nome = $_POST['nome'] ?? '';
     $cognome = $_POST['cognome'] ?? '';
     $data_nascita = $_POST['data_nascita'] ?? null;
@@ -35,18 +33,24 @@ elseif ($action === 'update') {
     }
 
     try {
-        // Controllo se è stata caricata una nuova foto
         if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+            
+            $estensione = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+            $estensioni_ammesse = ['jpg', 'jpeg', 'png', 'gif'];
+            
+            if (!in_array($estensione, $estensioni_ammesse)) {
+                echo json_encode(['success' => false, 'message' => 'Formato file non supportato.']);
+                exit;
+            }
+
             $uploadDir = '../Immagini/';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
 
-            $estensione = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
-            $nomeFoto = time() . '_' . uniqid() . '.' . $estensione; // Evitiamo nomi doppi
+            $nomeFoto = time() . '_' . uniqid() . '.' . $estensione; 
             
             if (move_uploaded_file($_FILES['foto']['tmp_name'], $uploadDir . $nomeFoto)) {
-                // Aggiorniamo anche la foto nel database
                 $stmt = $pdo->prepare("UPDATE iscritti SET nome = ?, cognome = ?, data_nascita = ?, foto = ? WHERE id = ?");
                 $stmt->execute([$nome, $cognome, $data_nascita, $nomeFoto, $user_id]);
             } else {
@@ -54,12 +58,10 @@ elseif ($action === 'update') {
                 exit;
             }
         } else {
-            // Aggiornamento dati SENZA cambiare la foto
             $stmt = $pdo->prepare("UPDATE iscritti SET nome = ?, cognome = ?, data_nascita = ? WHERE id = ?");
             $stmt->execute([$nome, $cognome, $data_nascita, $user_id]);
         }
 
-        // Aggiorniamo il nome nel localStorage per riflettere il cambiamento nella dashboard
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => 'Errore DB: ' . $e->getMessage()]);

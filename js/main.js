@@ -11,6 +11,7 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault(); 
 
     const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
     const feedback = document.getElementById('loginFeedback');
 
     feedback.innerHTML = '<div class="alert alert-info">Verifica in corso...</div>';
@@ -21,9 +22,9 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/x-www-form-urlencoded',
-            'X-Requested-With': 'XMLHttpRequest' // <-- Firma Aggiunta
+            'X-Requested-With': 'XMLHttpRequest' 
         },
-        body: 'email=' + encodeURIComponent(email)
+        body: 'email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password)
     })
     .then(response => {
         if (!response.ok) throw new Error('File non trovato o errore server');
@@ -31,16 +32,16 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     })
     .then(data => {
         if (data.success) {
-            const ruoloPulito = data.ruolo; // Ora è già pulito dal PHP
+            const ruoloPulito = data.ruolo; 
             
             // Salvataggio dati nel browser
             localStorage.setItem('userName', data.nome);
             localStorage.setItem('userRole', ruoloPulito); 
             localStorage.setItem('userId', data.id);
             localStorage.setItem('isResponsabile', data.isResponsabile);
-            localStorage.setItem('userSettore', data.settore || ''); // <-- Salva il settore
+            localStorage.setItem('userSettore', data.settore || ''); 
 
-            // SMISTAMENTO: controlliamo sia admin che amministratore
+            // SMISTAMENTO
             if (ruoloPulito === 'admin' || ruoloPulito === 'amministratore') {
                 alert("Accesso Amministratore confermato. Reindirizzamento...");
                 window.location.replace('Frontend/admin.html');
