@@ -9,7 +9,22 @@ $stato = $_POST['stato']; // può essere 'confermato', 'rifiutato', 'annullato'
 $motivazione = $_POST['motivazione'] ?? null;
 
 if ($stato === 'confermato') {
-    // ... mantieni il tuo codice esistente per il controllo delle sovrapposizioni ...
+    // Controlliamo quanti posti sono già occupati rispetto alla capienza della sala
+    $stmtCapienza = $pdo->prepare("
+        SELECT s.capienza,
+               (SELECT COUNT(*) FROM partecipazioni part WHERE part.id_prenotazione = p.id AND part.stato = 'confermato') as posti_occupati
+        FROM prenotazioni p
+        JOIN sale s ON p.id_sala = s.id
+        WHERE p.id = ?
+    ");
+    $stmtCapienza->execute([$id_pren]);
+    $datiSala = $stmtCapienza->fetch(PDO::FETCH_ASSOC);
+
+    // Se i posti occupati sono uguali o maggiori della capienza, blocchiamo tutto
+    if ($datiSala && $datiSala['posti_occupati'] >= $datiSala['capienza']) {
+        echo json_encode(['success' => false, 'message' => 'Posti esauriti! La sala ha raggiunto la capienza massima.']);
+        exit;
+    }
 }
 
 // Resettiamo la motivazione se l'utente accetta o annulla (opzionale)
