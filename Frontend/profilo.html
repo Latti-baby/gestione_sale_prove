@@ -42,6 +42,19 @@
                         <small class="text-muted">L'email è usata per il login e non può essere modificata.</small>
                     </div>
 
+                    <div id="datiResponsabile" class="mb-4 p-3 bg-info bg-opacity-10 rounded border border-info d-none">
+                        <h6 class="fw-bold text-info mb-3">Dati Ruolo Responsabile</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label fw-bold small">Anni di Servizio</label>
+                                <input type="text" class="form-control bg-light" id="prof_anni" disabled>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label fw-bold small">Data Promozione</label>
+                                <input type="date" class="form-control bg-light" id="prof_promozione" disabled>
+                            </div>
+                        </div>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold small">Data di Nascita</label>
                         <input type="date" class="form-control" id="prof_data">
@@ -74,6 +87,13 @@
                 document.getElementById('prof_email').value = data.user.email;
                 if(data.user.data_nascita) document.getElementById('prof_data').value = data.user.data_nascita;
                 if(data.user.foto) document.getElementById('fotoPreview').src = '../Immagini/' + data.user.foto;
+                
+                // Popola i dati responsabile se presenti
+                if(data.user.anni_servizio !== null) {
+                    document.getElementById('datiResponsabile').classList.remove('d-none');
+                    document.getElementById('prof_anni').value = data.user.anni_servizio;
+                    document.getElementById('prof_promozione').value = data.user.data_promozione;
+                }
             }
         });
     });

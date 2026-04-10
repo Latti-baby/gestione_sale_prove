@@ -35,7 +35,32 @@ if ($stato !== 'rifiutato') {
 try {
     $upd = $pdo->prepare("UPDATE partecipazioni SET stato = ?, motivazione = ? WHERE id_prenotazione = ? AND id_iscritto = ?");
     $upd->execute([$stato, $motivazione, $id_pren, $user_id]);
+
+    // --- NUOVA PARTE: NOTIFICA AL DOCENTE ---
+    // 1. Prendi info prenotazione
+    $stmtPren = $pdo->prepare("SELECT id_responsabile, attivita FROM prenotazioni WHERE id = ?");
+    $stmtPren->execute([$id_pren]);
+    $prenotazione = $stmtPren->fetch(PDO::FETCH_ASSOC);
+
+    // 2. Prendi info studente
+    $stmtStud = $pdo->prepare("SELECT nome, cognome FROM iscritti WHERE id = ?");
+    $stmtStud->execute([$user_id]);
+    $studente = $stmtStud->fetch(PDO::FETCH_ASSOC);
+
+    if ($prenotazione && $studente) {
+        $msg = "L'iscritto " . $studente['nome'] . " " . $studente['cognome'] . " ha " . strtoupper($stato) . " l'invito per: " . $prenotazione['attivita'];
+        if ($motivazione) {
+            $msg .= " (Motivazione: " . $motivazione . ")";
+        }
+
+        // Inserisci notifica per il docente responsabile
+        $stmtNotifica = $pdo->prepare("INSERT INTO notifiche (id_docente, messaggio) VALUES (?, ?)");
+        $stmtNotifica->execute([$prenotazione['id_responsabile'], $msg]);
+    }
+    // --- FINE NUOVA PARTE ---
+
     echo json_encode(['success' => true]);
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Errore DB: ' . $e->getMessage()]);
 }
+?>

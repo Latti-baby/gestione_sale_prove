@@ -12,7 +12,13 @@ $user_id = $_SESSION['user_id'];
 $action = $_GET['action'] ?? '';
 
 if ($action === 'get') {
-    $stmt = $pdo->prepare("SELECT nome, cognome, email, data_nascita, foto FROM iscritti WHERE id = ?");
+    // AGGIORNATA LA QUERY: Prende anche i dati del responsabile se esistono
+    $stmt = $pdo->prepare("
+        SELECT i.nome, i.cognome, i.email, i.data_nascita, i.foto, r.anni_servizio, r.data_promozione 
+        FROM iscritti i
+        LEFT JOIN responsabili_dati r ON i.id = r.id_iscritto
+        WHERE i.id = ?
+    ");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     

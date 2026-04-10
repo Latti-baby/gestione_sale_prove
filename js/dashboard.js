@@ -21,10 +21,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('userName').textContent = testoNavbar;
     }
 
-    // 3. Mostra la sezione responsabile
+    // 3. Mostra la sezione responsabile e carica notifiche
     const sezioneResp = document.getElementById('sezioneResponsabile');
     if (sezioneResp && isResp) {
         sezioneResp.classList.remove('d-none');
+        caricaNotifiche(); // <--- CHIAMATA NUOVA
     }
 
     // 4. Carica gli inviti
@@ -78,6 +79,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // --- FUNZIONI GLOBALI ---
+
+// FUNZIONE NUOVA: Carica Notifiche
+function caricaNotifiche() {
+    fetch('../backend/get_notifiche.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.notifiche && data.notifiche.length > 0) {
+            const box = document.getElementById('sezioneNotifiche');
+            const lista = document.getElementById('listaNotifiche');
+            
+            box.classList.remove('d-none');
+            lista.innerHTML = '';
+            
+            data.notifiche.forEach(notifica => {
+                lista.innerHTML += `<li>${notifica.messaggio} <small class="text-muted">(${notifica.data_creazione})</small></li>`;
+            });
+        }
+    });
+}
 
 function caricaInviti() {
     const lista = document.getElementById('listaInviti');
@@ -154,11 +174,10 @@ function apriModalePrenotazione() {
         }
     });
 
-    // Imposta la data di oggi come valore di default e come limite minimo (min)
     const inputData = document.getElementById('data_pren');
     const oggi = new Date().toISOString().split('T')[0];
     inputData.value = oggi;
-    inputData.min = oggi; // Questo impedisce all'utente di cliccare giorni passati nel calendario
+    inputData.min = oggi; 
     
     new bootstrap.Modal(document.getElementById('modalPrenotazione')).show();
 }
