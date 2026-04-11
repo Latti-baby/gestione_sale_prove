@@ -1,231 +1,178 @@
 document.addEventListener('DOMContentLoaded', () => {
     const ruolo = localStorage.getItem('userRole'); 
     if (ruolo !== 'admin' && ruolo !== 'amministratore') {
-        alert("Accesso negato! Solo gli amministratori possono visualizzare questa pagina.");
-        window.location.href = 'dashboard.html';
-        return;
+        window.location.href = 'dashboard.html'; return;
     }
-    
-    const opzioniData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('dataOggiLabel').textContent = new Date().toLocaleDateString('it-IT', opzioniData);
 
     caricaReport();
-    caricaIscritti(); 
-
-    const filtroTesto = document.getElementById('filtroTesto');
-    if(filtroTesto) filtroTesto.addEventListener('input', applicaFiltri);
-    const filtroSettore = document.getElementById('filtroSettore');
-    if(filtroSettore) filtroSettore.addEventListener('change', applicaFiltri);
+    caricaIscritti();
+    caricaSaleEDotazioni();
 
     const inputRicerca = document.getElementById('ricercaUtente');
     if(inputRicerca) {
         inputRicerca.addEventListener('input', function() {
             const termine = this.value.toLowerCase();
-            const righe = document.querySelectorAll('#tabellaIscritti tr');
-            
-            righe.forEach(riga => {
+            document.querySelectorAll('#tabellaIscritti tr').forEach(riga => {
                 if(riga.cells.length < 2) return; 
-                const testoRiga = riga.textContent.toLowerCase();
-                riga.style.display = testoRiga.includes(termine) ? '' : 'none';
+                riga.style.display = riga.textContent.toLowerCase().includes(termine) ? '' : 'none';
             });
         });
     }
 });
 
 let datiGlobali = [];
-const coloriBadge = ['bg-primary', 'bg-success', 'bg-danger', 'bg-warning text-dark', 'bg-info text-dark', 'bg-secondary', 'bg-dark'];
-let mappaColori = {};
-let indiceColore = 0;
 
-function getColoreSettore(nomeSettore) {
-    if (!mappaColori[nomeSettore]) {
-        mappaColori[nomeSettore] = coloriBadge[indiceColore % coloriBadge.length];
-        indiceColore++;
-    }
-    return mappaColori[nomeSettore];
-}
-
-// --- GESTIONE ISCRITTI, PROMOZIONI E REVOCA ---
-
-function caricaIscritti() {
-    const tbody = document.getElementById('tabellaIscritti');
+function cambiaScheda(nomeScheda) {
+    document.getElementById('schedaDashboard').classList.add('d-none');
+    document.getElementById('schedaSale').classList.add('d-none');
     
-    fetch('../backend/get_iscritti.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-    .then(res => {
-        if (!res.ok) throw new Error("Errore server (Codice " + res.status + ")");
-        return res.json();
-    })
-    .then(data => {
-        tbody.innerHTML = '';
-        if (data.success && data.iscritti.length > 0) {
-            data.iscritti.forEach(user => {
-                let badgeRuolo = user.ruolo === 'docente' ? 'bg-primary' : (user.ruolo === 'tecnico' ? 'bg-secondary' : 'bg-info');
-                
-                let statoResp = user.is_responsabile == 1 
-                    ? '<span class="badge bg-success shadow-sm">✓ Responsabile</span>' 
-                    : '<span class="text-muted small">No</span>';
-
-                // CAMBIAMENTO: Adesso c'è il tasto REVOCA al posto del tasto disabilitato
-                let bottoneAzione = user.is_responsabile == 1
-                    ? `<button class="btn btn-sm btn-danger fw-bold shadow-sm" onclick="revocaResponsabile(${user.id}, '${user.nome.replace(/'/g, "\\'")} ${user.cognome.replace(/'/g, "\\'")}')">Revoca 🗑️</button>`
-                    : `<button class="btn btn-sm btn-success fw-bold shadow-sm" onclick="apriModalePromozione(${user.id}, '${user.nome.replace(/'/g, "\\'")} ${user.cognome.replace(/'/g, "\\'")}')">Promuovi ⚙️</button>`;
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="fw-bold">${user.nome} ${user.cognome}</td>
-                        <td>${user.email}</td>
-                        <td><span class="badge ${badgeRuolo}">${user.ruolo}</span></td>
-                        <td>${user.nome_settore || '-'}</td>
-                        <td>${statoResp}</td>
-                        <td>${bottoneAzione}</td>
-                    </tr>
-                `;
-            });
-        } else {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">${data.message || 'Nessun iscritto trovato.'}</td></tr>`;
-        }
-    })
-    .catch(err => {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger fw-bold py-4">❌ Impossibile caricare gli iscritti:<br><small class="text-muted">${err.message}</small></td></tr>`;
-    });
+    if(nomeScheda === 'dashboard') document.getElementById('schedaDashboard').classList.remove('d-none');
+    if(nomeScheda === 'sale') document.getElementById('schedaSale').classList.remove('d-none');
 }
 
-// NUOVA FUNZIONE: Revoca Responsabile
-function revocaResponsabile(id, nomeCompleto) {
-    if (confirm(`⚠️ Sei sicuro di voler REVOCARE il ruolo di Responsabile a ${nomeCompleto}?`)) {
-        const formData = new URLSearchParams();
-        formData.append('id_iscritto', id);
+// =========================================================
+// NUOVA SEZIONE: GESTIONE E MODIFICA DELLE SALE
+// =========================================================
 
-        fetch('../backend/revoca_responsabile.php', {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert(`Ruolo revocato con successo a ${nomeCompleto}.`);
-                caricaIscritti(); // Aggiorna tabella
-            } else {
-                alert("Errore: " + data.message);
-            }
-        })
-        .catch(err => {
-            alert("Errore di connessione o file PHP non trovato.");
-            console.error(err);
-        });
-    }
-}
-
-function apriModalePromozione(id, nomeCompleto) {
-    document.getElementById('prom_id_iscritto').value = id;
-    document.getElementById('prom_nome_utente').textContent = nomeCompleto;
-    document.getElementById('prom_anni').value = 0;
-    
-    document.getElementById('stepNormale').classList.remove('d-none');
-    document.getElementById('stepSostituzione').classList.add('d-none');
-    document.getElementById('btnPromuoviNormale').classList.remove('d-none');
-    document.getElementById('btnPromuoviForzato').classList.add('d-none');
-    document.getElementById('headerModale').classList.replace('bg-danger', 'bg-success');
-    document.getElementById('feedbackPromozione').innerHTML = '';
-    
-    new bootstrap.Modal(document.getElementById('modalPromuovi')).show();
-}
-
-function confermaPromozione(force_replace = 0) {
-    const id = document.getElementById('prom_id_iscritto').value;
-    const anni = document.getElementById('prom_anni').value;
-    const feedback = document.getElementById('feedbackPromozione');
-    
-    feedback.innerHTML = '<div class="alert alert-info mt-3 shadow-sm">Elaborazione in corso...</div>';
-
-    const formData = new URLSearchParams();
-    formData.append('id_iscritto', id);
-    formData.append('anni_servizio', anni);
-    formData.append('force_replace', force_replace);
-
-    fetch('../backend/promuovi_responsabile.php', {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        body: formData
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("Errore del server: " + res.status);
-        return res.json();
-    })
-    .then(data => {
-        if (data.require_confirm) {
-            document.getElementById('stepNormale').classList.add('d-none');
-            document.getElementById('stepSostituzione').classList.remove('d-none');
-            document.getElementById('btnPromuoviNormale').classList.add('d-none');
-            document.getElementById('btnPromuoviForzato').classList.remove('d-none');
-            document.getElementById('headerModale').classList.replace('bg-success', 'bg-danger');
-            document.getElementById('msgSostituzioneTesto').textContent = data.message;
-            feedback.innerHTML = '';
-            return;
-        }
-
-        if (data.success) {
-            feedback.innerHTML = '<div class="alert alert-success mt-3 shadow-sm">Operazione completata con successo!</div>';
-            setTimeout(() => {
-                bootstrap.Modal.getInstance(document.getElementById('modalPromuovi')).hide();
-                caricaIscritti(); 
-            }, 1500);
-        } else {
-            feedback.innerHTML = `<div class="alert alert-danger mt-3 shadow-sm">${data.message}</div>`;
-        }
-    })
-    // AGGIUNTO CATCH DEGLI ERRORI: Ora se fallisce ti dice il motivo
-    .catch(err => {
-        console.error(err);
-        feedback.innerHTML = `<div class="alert alert-danger mt-3 shadow-sm">❌ Impossibile promuovere: ${err.message}. Controlla il file PHP.</div>`;
-    });
-}
-
-// --- GESTIONE PRENOTAZIONI, GRAFICI E REPORT ---
-
-function caricaReport() {
-    fetch('../backend/get_admin_report.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+function apriModaleNuovaSala() {
+    // Carica i settori per la tendina della nuova sala
+    fetch('../backend/get_settori.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            datiGlobali = data.data;
-            popolaFiltroSettori(datiGlobali);
-            renderTabella(datiGlobali);
-            renderPrenotazioniOggi(datiGlobali);
-            renderGrafico(datiGlobali);
+        const sel = document.getElementById('ns_settore');
+        sel.innerHTML = '<option value="">-- Seleziona Settore --</option>';
+        if(data.success) {
+            data.settori.forEach(s => { sel.innerHTML += `<option value="${s.id}">${s.nome}</option>`; });
+        }
+        document.getElementById('ns_nome').value = '';
+        document.getElementById('ns_capienza').value = '10';
+        new bootstrap.Modal(document.getElementById('modalNuovaSala')).show();
+    });
+}
+
+function salvaNuovaSala() {
+    const data = new URLSearchParams();
+    data.append('nome', document.getElementById('ns_nome').value);
+    data.append('capienza', document.getElementById('ns_capienza').value);
+    data.append('id_settore', document.getElementById('ns_settore').value);
+
+    fetch('../backend/aggiungi_sala.php', { 
+        method: 'POST', 
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: data 
+    })
+    .then(res => res.json())
+    .then(res => {
+        if(res.success) {
+            bootstrap.Modal.getInstance(document.getElementById('modalNuovaSala')).hide();
+            caricaSaleEDotazioni(); // Ricarica la griglia
+        } else {
+            alert("Errore nella creazione della sala: " + res.message);
         }
     });
 }
 
-function renderPrenotazioniOggi(dati) {
-    const griglia = document.getElementById('grigliaOggi');
+function apriModificaSala(id, nome, capienza) {
+    document.getElementById('ms_id').value = id;
+    document.getElementById('ms_nome').value = nome;
+    document.getElementById('ms_capienza').value = capienza;
+    new bootstrap.Modal(document.getElementById('modalModificaSala')).show();
+}
+
+function salvaModificaSala() {
+    const data = new URLSearchParams();
+    data.append('id', document.getElementById('ms_id').value);
+    data.append('nome', document.getElementById('ms_nome').value);
+    data.append('capienza', document.getElementById('ms_capienza').value);
+
+    fetch('../backend/modifica_sala.php', { 
+        method: 'POST', 
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: data 
+    })
+    .then(res => res.json())
+    .then(res => {
+        if(res.success) {
+            bootstrap.Modal.getInstance(document.getElementById('modalModificaSala')).hide();
+            caricaSaleEDotazioni(); 
+        } else {
+            alert("Errore modifica sala: " + res.message);
+        }
+    });
+}
+
+// =========================================================
+// GESTIONE INVENTARIO E DOTAZIONI
+// =========================================================
+
+function caricaSaleEDotazioni() {
+    const griglia = document.getElementById('grigliaSale');
+    fetch('../backend/get_sale_dotazioni.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            renderGrigliaSale(data.sale, data.dotazioni);
+        } else {
+            griglia.innerHTML = `<div class="col-12 text-center text-danger fw-bold py-5">❌ Errore DB: ${data.message}</div>`;
+        }
+    })
+    .catch(err => {
+        griglia.innerHTML = `<div class="col-12 text-center text-danger fw-bold py-5">❌ Errore Connessione Server.</div>`;
+    });
+}
+
+function renderGrigliaSale(sale, dotazioni) {
+    const griglia = document.getElementById('grigliaSale');
     griglia.innerHTML = '';
-    const oggiString = new Date().toISOString().split('T')[0];
-    const filtrateOggi = dati.filter(item => item.data === oggiString);
 
-    if (filtrateOggi.length === 0) {
-        griglia.innerHTML = `<div class="col-12"><div class="alert alert-light text-center border text-muted">Nessuna prenotazione prevista per oggi.</div></div>`;
-        return;
-    }
+    sale.forEach(sala => {
+        const oggetti = dotazioni.filter(d => d.id_sala === sala.id);
+        
+        let htmlDotazioni = '';
+        oggetti.forEach(ogg => {
+            let badgeColore = "bg-success";
+            if(ogg.condizione.includes("Buona")) badgeColore = "bg-warning text-dark";
+            if(ogg.condizione.includes("sostituire")) badgeColore = "bg-secondary text-white"; 
+            if(ogg.condizione.includes("Guasta")) badgeColore = "bg-danger";
 
-    filtrateOggi.forEach(row => {
-        const occupanti = `${row.confermati} / ${row.max_iscritti}`;
-        const isPiena = row.confermati >= row.max_iscritti;
-        const coloreBadge = getColoreSettore(row.nome_settore);
+            htmlDotazioni += `
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold">${ogg.nome_dotazione}</div>
+                        ${ogg.note ? `<small class="text-muted d-block mt-1"><em>Note: ${ogg.note}</em></small>` : ''}
+                    </div>
+                    <div class="text-end">
+                        <span class="badge ${badgeColore} rounded-pill mb-1">${ogg.condizione}</span><br>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="apriModificaDotazione(${ogg.id}, '${ogg.condizione}', '${(ogg.note || '').replace(/'/g, "\\'")}')">✎ Stato</button>
+                    </div>
+                </li>
+            `;
+        });
+
+        if(oggetti.length === 0) htmlDotazioni = `<li class="list-group-item text-muted text-center small">Nessuna dotazione registrata</li>`;
 
         griglia.innerHTML += `
-            <div class="col-md-4">
-                <div class="card card-oggi h-100 bg-white border-0 shadow-sm border-start border-5 ${isPiena ? 'border-danger' : 'border-success'}">
-                    <div class="card-body position-relative">
-                        <span class="badge ${coloreBadge} position-absolute top-0 end-0 m-3 shadow-sm">${row.nome_settore}</span>
-                        <h5 class="card-title text-dark fw-bold pe-5">${row.attivita}</h5>
-                        <p class="mb-1 text-muted">📍 <strong>Sala:</strong> ${row.nome_sala}</p>
-                        <p class="mb-1 text-muted">🕒 <strong>Ora:</strong> ${row.ora_inizio}:00 (${row.durata || 1}h)</p>
-                        <div class="mt-3">
-                            <span class="badge ${isPiena ? 'bg-danger' : 'bg-light text-dark border'} w-100 py-2 fs-6">
-                                👥 Posti: ${occupanti}
-                            </span>
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-0 border-top border-4 border-info h-100">
+                    
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">${sala.nome} <span class="badge bg-light text-dark border ms-2 shadow-sm">Max ${sala.capienza} pax</span></h5>
+                        </div>
+                        <div>
+                            <span class="badge bg-secondary me-2 shadow-sm">${sala.nome_settore || 'Generico'}</span>
+                            <button class="btn btn-sm btn-outline-primary fw-bold" onclick="apriModificaSala(${sala.id}, '${sala.nome.replace(/'/g, "\\'")}', ${sala.capienza})">⚙️ Modifica</button>
+                        </div>
+                    </div>
+
+                    <div class="card-body bg-light">
+                        <h6 class="fw-bold text-muted small text-uppercase">Inventario Attuale</h6>
+                        <ul class="list-group list-group-flush mb-3 border shadow-sm rounded bg-white">
+                            ${htmlDotazioni}
+                        </ul>
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="nuova_dot_${sala.id}" class="form-control border-info" placeholder="Es: Amplificatore, Luci...">
+                            <button class="btn btn-info text-white fw-bold" onclick="aggiungiDotazione(${sala.id})">Aggiungi +</button>
                         </div>
                     </div>
                 </div>
@@ -234,151 +181,162 @@ function renderPrenotazioniOggi(dati) {
     });
 }
 
-function renderTabella(dati) {
-    const tbody = document.getElementById('tabellaReport');
-    tbody.innerHTML = '';
+function aggiungiDotazione(idSala) {
+    const input = document.getElementById(`nuova_dot_${idSala}`);
+    const nome = input.value.trim();
+    if(!nome) return;
 
-    dati.forEach(row => {
-        const occupanti = `${row.confermati} / ${row.max_iscritti}`;
-        const isPiena = row.confermati >= row.max_iscritti;
-        const coloreBadge = getColoreSettore(row.nome_settore); 
+    const data = new URLSearchParams();
+    data.append('id_sala', idSala);
+    data.append('nome_dotazione', nome);
 
-        tbody.innerHTML += `
-            <tr class="${isPiena ? 'table-warning' : ''}">
-                <td class="fw-bold text-dark">${row.attivita}</td>
-                <td>
-                    ${row.nome_sala} 
-                    <span class="badge ${isPiena ? 'bg-danger' : 'bg-success'} ms-2 rounded-pill">${occupanti}</span>
-                </td>
-                <td><span class="badge ${coloreBadge} shadow-sm">${row.nome_settore}</span></td>
-                <td>${row.data} <br><small class="text-muted">Ore: ${row.ora_inizio}:00</small></td>
-                <td class="text-end">
-                    <div class="btn-group shadow-sm">
-                        <button class="btn btn-sm btn-outline-primary" onclick="apriModifica(${JSON.stringify(row).replace(/"/g, '&quot;')})">✎ Modifica</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="eliminaPrenotazione(${row.id})">🗑 Cancella</button>
-                    </div>
-                </td>
-            </tr>
-        `;
+    fetch('../backend/aggiungi_dotazione.php', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: data })
+    .then(() => caricaSaleEDotazioni());
+}
+
+function apriModificaDotazione(id, condizione, note) {
+    document.getElementById('dot_id').value = id;
+    document.getElementById('dot_condizione').value = condizione;
+    document.getElementById('dot_note').value = note;
+    new bootstrap.Modal(document.getElementById('modalModificaDotazione')).show();
+}
+
+function salvaDotazione() {
+    const data = new URLSearchParams({
+        id_dotazione: document.getElementById('dot_id').value,
+        condizione: document.getElementById('dot_condizione').value,
+        note: document.getElementById('dot_note').value
+    });
+
+    fetch('../backend/aggiorna_dotazione.php', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: data })
+    .then(() => {
+        bootstrap.Modal.getInstance(document.getElementById('modalModificaDotazione')).hide();
+        caricaSaleEDotazioni();
     });
 }
 
-function applicaFiltri() {
-    const testo = document.getElementById('filtroTesto').value.toLowerCase();
-    const settore = document.getElementById('filtroSettore').value;
+// =========================================================
+// GESTIONE ISCRITTI E PROMOZIONI E REPORT
+// =========================================================
 
-    const filtrati = datiGlobali.filter(item => {
-        const matchTesto = item.attivita.toLowerCase().includes(testo) || 
-                           item.nome_sala.toLowerCase().includes(testo);
-        const matchSettore = settore === "" || item.nome_settore === settore;
-        return matchTesto && matchSettore;
-    });
-    renderTabella(filtrati);
+function formattazioneData(dataSQL) {
+    if(!dataSQL) return 'N/A';
+    const d = new Date(dataSQL);
+    return d.toLocaleDateString('it-IT');
 }
 
-function popolaFiltroSettori(dati) {
-    const select = document.getElementById('filtroSettore');
-    const settori = [...new Set(dati.map(item => item.nome_settore))];
-    select.innerHTML = '<option value="">Tutti i settori</option>';
-    settori.forEach(s => {
-        select.innerHTML += `<option value="${s}">${s}</option>`;
-    });
-}
+function caricaIscritti() {
+    const tbody = document.getElementById('tabellaIscritti');
+    fetch('../backend/get_iscritti.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(res => res.json())
+    .then(data => {
+        tbody.innerHTML = '';
+        if (data.success && data.iscritti.length > 0) {
+            data.iscritti.forEach(user => {
+                let badgeRuolo = user.ruolo === 'admin' || user.ruolo === 'amministratore' ? 'bg-danger' : (user.ruolo === 'docente' ? 'bg-primary' : 'bg-info');
+                let statoResp = user.is_responsabile == 1 ? '<span class="badge bg-success shadow-sm">✓ Responsabile</span>' : '<span class="text-muted small">No</span>';
+                let dataIscr = formattazioneData(user.data_registrazione);
 
-function renderGrafico(dati) {
-    const ctx = document.getElementById('chartSettori').getContext('2d');
-    
-    if(window.mioGrafico) { window.mioGrafico.destroy(); }
+                let bottoneAzione = user.is_responsabile == 1 || user.ruolo === 'admin' || user.ruolo === 'amministratore'
+                    ? `<button class="btn btn-sm btn-outline-secondary" disabled>Non Promuovibile</button>`
+                    : `<button class="btn btn-sm btn-success fw-bold shadow-sm" onclick="apriModalePromozione(${user.id}, '${user.nome.replace(/'/g, "\\'")} ${user.cognome.replace(/'/g, "\\'")}')">Promuovi ⚙️</button>`;
 
-    const conteggio = {};
-    dati.forEach(item => {
-        conteggio[item.nome_settore] = (conteggio[item.nome_settore] || 0) + 1;
-    });
-
-    window.mioGrafico = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: Object.keys(conteggio),
-            datasets: [{
-                label: 'Totale Prenotazioni per Settore',
-                data: Object.values(conteggio),
-                backgroundColor: 'rgba(13, 110, 253, 0.7)', 
-                borderColor: 'rgba(13, 110, 253, 1)',
-                borderWidth: 2,
-                borderRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-            plugins: { legend: { display: false } }
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="fw-bold">${user.nome} ${user.cognome}<br><small class="text-muted">${user.email}</small></td>
+                        <td><span class="badge ${badgeRuolo}">${user.ruolo}</span></td>
+                        <td>${user.nome_settore || '-'}</td>
+                        <td class="small fw-bold text-secondary">📅 ${dataIscr}</td>
+                        <td>${statoResp}</td>
+                        <td>${bottoneAzione}</td>
+                    </tr>
+                `;
+            });
         }
     });
 }
 
-function apriModifica(prenotazione) {
-    document.getElementById('edit_id').value = prenotazione.id;
-    document.getElementById('edit_attivita').value = prenotazione.attivita;
-    document.getElementById('edit_data').value = prenotazione.data;
-    document.getElementById('edit_ora').value = prenotazione.ora_inizio;
-    new bootstrap.Modal(document.getElementById('modalModifica')).show();
+function apriModalePromozione(id, nome) {
+    document.getElementById('prom_id_iscritto').value = id;
+    document.getElementById('prom_nome_utente').textContent = nome;
+    document.getElementById('stepNormale').classList.remove('d-none');
+    document.getElementById('stepSostituzione').classList.add('d-none');
+    document.getElementById('btnPromuoviNormale').classList.remove('d-none');
+    document.getElementById('btnPromuoviForzato').classList.add('d-none');
+    document.getElementById('feedbackPromozione').innerHTML = '';
+    new bootstrap.Modal(document.getElementById('modalPromuovi')).show();
 }
 
-function salvaModifica() {
-    const data = new URLSearchParams({
-        id: document.getElementById('edit_id').value,
-        attivita: document.getElementById('edit_attivita').value,
-        data: document.getElementById('edit_data').value,
-        ora_inizio: document.getElementById('edit_ora').value,
-        durata: document.getElementById('edit_durata') ? document.getElementById('edit_durata').value : 1
+function confermaPromozione(force = 0) {
+    const id = document.getElementById('prom_id_iscritto').value;
+    const anni = document.getElementById('prom_anni').value;
+    
+    fetch('../backend/promuovi_responsabile.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+        body: `id_iscritto=${id}&anni_servizio=${anni}&force_replace=${force}`
+    }).then(res => res.json()).then(data => {
+        if (data.require_confirm) {
+            document.getElementById('stepNormale').classList.add('d-none');
+            document.getElementById('stepSostituzione').classList.remove('d-none');
+            document.getElementById('btnPromuoviNormale').classList.add('d-none');
+            document.getElementById('btnPromuoviForzato').classList.remove('d-none');
+            document.getElementById('msgSostituzioneTesto').textContent = data.message;
+        } else if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('modalPromuovi')).hide();
+            caricaIscritti(); 
+        }
     });
+}
 
-    fetch('../backend/aggiorna_prenotazione.php', { 
-        method: 'POST', 
-        headers: { 
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-Requested-With': 'XMLHttpRequest' 
-        },
-        body: data 
-    })
+function caricaReport() {
+    fetch('../backend/get_admin_report.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     .then(res => res.json())
-    .then(res => {
-        alert(res.message);
-        if(res.success) location.reload();
+    .then(data => {
+        if (data.success) {
+            datiGlobali = data.data;
+            renderTabella(datiGlobali);
+            renderGrafico(datiGlobali);
+        }
+    });
+}
+
+function renderTabella(dati) {
+    const tbody = document.getElementById('tabellaReport');
+    tbody.innerHTML = '';
+    dati.forEach(row => {
+        tbody.innerHTML += `<tr>
+            <td class="fw-bold">${row.attivita}</td>
+            <td>${row.nome_sala}</td>
+            <td><span class="badge bg-secondary">${row.nome_settore}</span></td>
+            <td>${row.data} (${row.ora_inizio}:00)</td>
+            <td class="text-end"><button class="btn btn-sm btn-outline-danger" onclick="eliminaPrenotazione(${row.id})">🗑 Cancella</button></td>
+        </tr>`;
+    });
+}
+
+function renderGrafico(dati) {
+    const ctx = document.getElementById('chartSettori');
+    if(!ctx) return;
+    const ctx2d = ctx.getContext('2d');
+    const conteggio = {};
+    dati.forEach(item => { conteggio[item.nome_settore] = (conteggio[item.nome_settore] || 0) + 1; });
+
+    if(window.mioGrafico) window.mioGrafico.destroy();
+    window.mioGrafico = new Chart(ctx2d, {
+        type: 'bar',
+        data: { labels: Object.keys(conteggio), datasets: [{ data: Object.values(conteggio), backgroundColor: 'rgba(13,110,253,0.7)' }] },
+        options: { plugins: { legend: { display: false } }, maintainAspectRatio: false }
     });
 }
 
 function eliminaPrenotazione(id) {
-    if (confirm("Sei sicuro di voler eliminare questa prenotazione? L'azione è irreversibile.")) {
-        const formData = new URLSearchParams();
-        formData.append('id', id);
-
-        fetch('../backend/elimina_prenotazione.php', {
-            method: 'POST', 
-            headers: { 
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest' 
-            }, 
-            body: formData.toString()
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                caricaReport(); 
-            } else { 
-                alert("Errore: " + data.message); 
-            }
-        });
+    if(confirm("Eliminare prenotazione?")) {
+        fetch('../backend/elimina_prenotazione.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' }, body: `id=${id}` })
+        .then(() => caricaReport());
     }
 }
 
 function logout() {
-    fetch('../backend/logout.php', { 
-        headers: { 'X-Requested-With': 'XMLHttpRequest' } 
-    })
-    .then(() => {
-        localStorage.clear();
-        window.location.replace('../index.php'); 
-    });
+    fetch('../backend/logout.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } }).then(() => { localStorage.clear(); window.location.replace('../index.php'); });
 }

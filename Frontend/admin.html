@@ -10,142 +10,184 @@
 
     <nav class="navbar navbar-dark admin-navbar mb-4 py-3 bg-dark">
         <div class="container d-flex justify-content-between align-items-center">
-            <span class="navbar-brand fs-4 fw-bold text-warning">👑 Pannello di Controllo Globale</span>
-            <button class="btn btn-danger text-white fw-bold shadow-sm" onclick="logout()">Esci (Logout)</button>
+            <span class="navbar-brand fs-4 fw-bold text-warning">👑 Pannello Super Admin</span>
+            <div>
+                <button class="btn btn-outline-light me-2 shadow-sm" onclick="cambiaScheda('dashboard')">🏠 Dashboard</button>
+                <button class="btn btn-outline-info me-3 shadow-sm" onclick="cambiaScheda('sale')">🏢 Sale e Inventario</button>
+                <button class="btn btn-danger text-white fw-bold shadow-sm" onclick="logout()">Esci</button>
+            </div>
         </div>
     </nav>
 
     <div class="container">
-        <div class="row mb-5">
-            <div class="col-12">
-                <div class="card table-custom-shadow border-0 shadow-sm">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <h5 class="mb-0 text-primary fw-bold">📊 Statistiche Occupazione Sale per Settore</h5>
+        <div id="schedaDashboard">
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="card table-custom-shadow border-0 shadow-sm">
+                        <div class="card-header bg-white border-bottom py-3">
+                            <h5 class="mb-0 text-primary fw-bold">📊 Statistiche Occupazione</h5>
+                        </div>
+                        <div class="card-body" style="height: 280px;">
+                            <canvas id="chartSettori"></canvas>
+                        </div>
                     </div>
-                    <div class="card-body" style="height: 280px;">
-                        <canvas id="chartSettori"></canvas>
+                </div>
+            </div>
+
+            <div class="card table-custom-shadow border-primary shadow-sm mb-5">
+                <div class="card-header bg-primary text-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">👥 Gestione Ruoli e Iscritti</h5>
+                    <input type="text" id="ricercaUtente" class="form-control form-control-sm w-25" placeholder="🔍 Cerca utente...">
+                </div>
+                <div class="card-body bg-light">
+                    <div class="table-responsive bg-white rounded shadow-sm">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted">
+                                <tr>
+                                    <th>Nome e Cognome</th>
+                                    <th>Ruolo Base</th>
+                                    <th>Settore</th>
+                                    <th>Iscritto il (Anzianità)</th>
+                                    <th>Stato Responsabile</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabellaIscritti">
+                                <tr><td colspan="6" class="text-center">Caricamento...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row mb-5">
-            <div class="col-12">
-                <div class="d-flex align-items-center mb-3 border-bottom pb-2">
-                    <h4 class="mb-0 text-dark fw-bold">📅 In programma Oggi</h4>
-                    <span class="ms-3 badge bg-white text-dark border shadow-sm fs-6" id="dataOggiLabel"></span>
+            <div class="card table-custom-shadow border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 text-primary fw-bold">🔍 Tutte le Prenotazioni</h5>
                 </div>
-                <div class="row g-3" id="grigliaOggi">
-                </div>
-            </div>
-        </div>
-
-        <div class="card table-custom-shadow border-primary shadow-sm mb-5">
-            <div class="card-header bg-primary text-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold">👥 Gestione Ruoli e Promozione Responsabili</h5>
-                <input type="text" id="ricercaUtente" class="form-control form-control-sm w-25" placeholder="🔍 Cerca utente...">
-            </div>
-            <div class="card-body bg-light">
-                <p class="text-muted small mb-3">Visualizza gli iscritti e promuovili a Responsabili di Settore. Puoi avere un solo responsabile per settore.</p>
-                <div class="table-responsive bg-white rounded shadow-sm">
+                <div class="card-body bg-white">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light text-muted">
-                            <tr>
-                                <th>Nome e Cognome</th>
-                                <th>Email</th>
-                                <th>Ruolo Base</th>
-                                <th>Settore</th>
-                                <th>Stato Responsabile</th>
-                                <th>Azioni</th>
-                            </tr>
+                        <thead class="table-light">
+                            <tr><th>Attività</th><th>Sala</th><th>Settore</th><th>Data e Ora</th><th class="text-end">Azioni</th></tr>
                         </thead>
-                        <tbody id="tabellaIscritti">
-                            <tr><td colspan="6" class="text-center">Caricamento iscritti...</td></tr>
-                        </tbody>
+                        <tbody id="tabellaReport"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <div class="card table-custom-shadow border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-bottom py-3">
-                <h5 class="mb-0 text-primary fw-bold">🔍 Tutte le Prenotazioni</h5>
-            </div>
-            <div class="card-body bg-light">
-                <div class="row g-3">
-                    <div class="col-md-5">
-                        <label class="form-label text-muted small fw-bold">Cerca per Attività o Sala</label>
-                        <input type="text" id="filtroTesto" class="form-control" placeholder="Es. Prove o Sala A...">
-                    </div>
-                    <div class="col-md-5">
-                        <label class="form-label text-muted small fw-bold">Filtra per Settore</label>
-                        <select id="filtroSettore" class="form-select border-primary">
-                            <option value="">Tutti i settori</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button class="btn btn-primary w-100 fw-bold" onclick="applicaFiltri()">Filtra</button>
-                    </div>
+        <div id="schedaSale" class="d-none">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border-start border-5 border-info">
+                <div>
+                    <h3 class="text-primary fw-bold mb-0">🏢 Inventario Sale e Dotazioni</h3>
+                    <p class="text-muted mb-0 small">Visualizza le dotazioni, modifica le sale esistenti o creane di nuove.</p>
                 </div>
+                <button class="btn btn-primary fw-bold shadow-sm" onclick="apriModaleNuovaSala()">+ Crea Nuova Sala</button>
             </div>
             
-            <div class="table-responsive bg-white p-3 rounded-bottom">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-muted">
-                        <tr>
-                            <th>Attività</th>
-                            <th>Sala (Occupati / Max)</th> 
-                            <th>Settore</th>
-                            <th>Data e Ora</th>
-                            <th class="text-end">Azioni</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabellaReport">
-                    </tbody>
-                </table>
+            <div class="row" id="grigliaSale">
+                <div class="col-12 text-center py-5"><div class="spinner-border text-info"></div></div>
             </div>
         </div>
     </div> 
 
-    <div class="modal fade" id="modalModifica" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modalNuovaSala" tabindex="-1">
         <div class="modal-dialog">
-            <div class="modal-content border-0 shadow">
+            <div class="modal-content shadow-lg border-0">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Modifica Prenotazione</h5>
+                    <h5 class="modal-title fw-bold">Aggiungi Nuova Sala</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="formModifica">
-                        <input type="hidden" id="edit_id">
+                    <form id="formNuovaSala">
                         <div class="mb-3">
-                            <label class="form-label">Attività</label>
-                            <input type="text" class="form-control" id="edit_attivita" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Data</label>
-                            <input type="date" class="form-control" id="edit_data" required>
+                            <label class="form-label fw-bold">Nome Sala</label>
+                            <input type="text" class="form-control" id="ns_nome" placeholder="Es. Sala Danza 1" required>
                         </div>
                         <div class="row">
-                            <div class="col-6">
-                                <label class="form-label">Ora Inizio</label>
-                                <input type="number" class="form-control" id="edit_ora" min="9" max="23" required>
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">Capienza Massima</label>
+                                <input type="number" class="form-control" id="ns_capienza" min="1" value="10" required>
                             </div>
-                            <div class="col-6">
-                                <label class="form-label">Durata (h)</label>
-                                <input type="number" class="form-control" id="edit_durata" min="1" max="5" required>
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">Assegna Settore</label>
+                                <select class="form-select" id="ns_settore" required>
+                                    <option value="">Caricamento...</option>
+                                </select>
                             </div>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer bg-light">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="button" class="btn btn-primary" onclick="salvaModifica()">Salva Modifiche</button>
+                    <button type="button" class="btn btn-primary fw-bold" onclick="salvaNuovaSala()">Crea Sala</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="modalPromuovi" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modalModificaSala" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title fw-bold">Modifica Sala</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formModificaSala">
+                        <input type="hidden" id="ms_id">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nome Sala</label>
+                            <input type="text" class="form-control" id="ms_nome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Capienza</label>
+                            <input type="number" class="form-control" id="ms_capienza" min="1" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-success fw-bold" onclick="salvaModificaSala()">Salva</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalModificaDotazione" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold">Modifica Stato Dotazione</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formDotazione">
+                        <input type="hidden" id="dot_id">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Condizione Attuale</label>
+                            <select class="form-select" id="dot_condizione">
+                                <option value="Ottima">🟢 Ottima</option>
+                                <option value="Buona">🟡 Buona (Usurata ma funzionante)</option>
+                                <option value="Da sostituire">🟠 Da sostituire a breve</option>
+                                <option value="Guasta">🔴 Guasta / Inutilizzabile</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Note / Segnalazione Guasti</label>
+                            <textarea class="form-control" id="dot_note" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-warning fw-bold" onclick="salvaDotazione()">Salva Modifiche</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalPromuovi" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-success text-white" id="headerModale">
@@ -155,29 +197,23 @@
                 <div class="modal-body">
                     <form id="formPromozione">
                         <input type="hidden" id="prom_id_iscritto">
-                        
                         <div id="stepNormale">
-                            <p>Stai per promuovere <strong id="prom_nome_utente" class="text-success"></strong> a Responsabile di Settore.</p>
+                            <p>Stai per promuovere <strong id="prom_nome_utente" class="text-success"></strong> a Responsabile.</p>
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Anni di Servizio pregressi (Opzionale)</label>
+                                <label class="form-label fw-bold">Anni di Servizio (Opzionale)</label>
                                 <input type="number" class="form-control" id="prom_anni" min="0" value="0">
                             </div>
                         </div>
-
                         <div id="stepSostituzione" class="d-none">
-                            <div class="alert alert-danger shadow-sm border-danger">
-                                ⚠️ <strong id="msgSostituzioneTesto"></strong>
-                            </div>
-                            <p class="fw-bold">Sei sicuro di voler revocare il ruolo al responsabile precedente per assegnarlo a questo utente?</p>
+                            <div class="alert alert-danger shadow-sm border-danger">⚠️ <strong id="msgSostituzioneTesto"></strong></div>
                         </div>
-
                         <div id="feedbackPromozione"></div>
                     </form>
                 </div>
-                <div class="modal-footer bg-light border-top-0">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="button" id="btnPromuoviNormale" class="btn btn-success fw-bold" onclick="confermaPromozione(0)">Promuovi</button>
-                    <button type="button" id="btnPromuoviForzato" class="btn btn-danger fw-bold d-none" onclick="confermaPromozione(1)">Sì, Sostituisci</button>
+                    <button type="button" id="btnPromuoviNormale" class="btn btn-success" onclick="confermaPromozione(0)">Promuovi</button>
+                    <button type="button" id="btnPromuoviForzato" class="btn btn-danger d-none" onclick="confermaPromozione(1)">Sì, Sostituisci</button>
                 </div>
             </div>
         </div>
@@ -185,6 +221,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../js/admin.js?v=2"></script>
+    <script src="../js/admin.js?v=5"></script>
 </body>
 </html>
