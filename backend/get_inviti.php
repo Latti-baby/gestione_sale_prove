@@ -1,13 +1,12 @@
 <?php
-// backend/get_inviti.php
-
-error_reporting(0); 
-ini_set('display_errors', 0);
-
-header('Content-Type: application/json');
-require_once '../Common/config.php';
+// ATTENZIONE: Righe di debug per far urlare PHP se ci sono errori
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 session_start();
+header('Content-Type: application/json');
+require_once '../Common/config.php';
 
 $user_id = $_SESSION['user_id'] ?? null;
 
@@ -17,7 +16,7 @@ if (!$user_id) {
 }
 
 try {
-    // Aggiunto filtro CURDATE() e ordinamento ORDER BY
+    // La query esclude (AND p.id_responsabile != ?) gli eventi di cui tu sei il creatore
     $stmt = $pdo->prepare("
         SELECT p.*, 
                s.nome as nome_sala, 
@@ -29,10 +28,13 @@ try {
         JOIN prenotazioni p ON part.id_prenotazione = p.id
         JOIN sale s ON p.id_sala = s.id
         JOIN iscritti i ON p.id_responsabile = i.id
-        WHERE part.id_iscritto = ? AND p.data >= CURDATE()
+        WHERE part.id_iscritto = ? 
+          AND p.data >= CURDATE()
+          AND p.id_responsabile != ?
         ORDER BY p.data ASC, p.ora_inizio ASC
     ");
-    $stmt->execute([$user_id]);
+    // Passiamo l'ID utente due volte
+    $stmt->execute([$user_id, $user_id]);
     $inviti = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode(['success' => true, 'inviti' => $inviti]);

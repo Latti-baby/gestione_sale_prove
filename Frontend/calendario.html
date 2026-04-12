@@ -36,6 +36,45 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalModifica" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold">Modifica Prenotazione</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <form id="formModifica">
+                        <input type="hidden" id="edit_id">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Attività</label>
+                            <input type="text" class="form-control" id="edit_attivita" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">Data</label>
+                                <input type="date" class="form-control" id="edit_data" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">Ora Inizio</label>
+                                <input type="number" class="form-control" id="edit_ora" min="9" max="23" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">Durata (Ore)</label>
+                                <input type="number" class="form-control" id="edit_durata" min="1" max="5" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-warning fw-bold" onclick="salvaModifica()">Salva Modifiche</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.getElementById('data_settimana').value = new Date().toISOString().split('T')[0];
         
@@ -50,6 +89,8 @@
             .then(data => {
                 if(!data.success) { alert(data.message); return; }
                 
+                const currentUserId = data.current_user_id;
+
                 // --- STAMPA IMPEGNI ---
                 const divImpegni = document.getElementById('impegniUtente');
                 divImpegni.innerHTML = '';
@@ -64,7 +105,7 @@
                                         <h5 class="fw-bold">${imp.attivita}</h5>
                                         <p class="mb-1 text-muted">📍 ${imp.nome_sala}</p>
                                         <p class="mb-1 text-muted">📅 ${imp.data}</p>
-                                        <p class="mb-0 text-muted">🕒 Ore ${imp.ora_inizio}:00 (${imp.durata}h)</p>
+                                        <p class="mb-0 text-muted">⏱ Ore ${imp.ora_inizio}:00 (${imp.durata}h)</p>
                                     </div>
                                 </div>
                             </div>
@@ -72,7 +113,7 @@
                     });
                 }
 
-                // --- STAMPA OCCUPAZIONE SALE ---
+                // --- STAMPA OCCUPAZIONE SALE A TABELLA ---
                 const divSale = document.getElementById('occupazioneSale');
                 divSale.innerHTML = '';
                 if(data.sale.length === 0) {
@@ -85,13 +126,44 @@
                     });
 
                     for(const [nomeSala, prenotazioni] of Object.entries(saleMap)) {
-                        let lista = prenotazioni.map(p => `<li><strong>${p.data}</strong> (Ore ${p.ora_inizio}:00) - ${p.attivita}</li>`).join('');
+                        // Costruisco le righe della tabella
+                        let righeTabella = prenotazioni.map(p => {
+                            const isMia = (p.id_utente == currentUserId);
+                            const rowClass = isMia ? 'table-warning' : ''; // Evidenzia la propria riga
+                            // Escapo gli apici singoli nell'attività per evitare che rompano il JS
+                            const btnModifica = isMia ? 
+                                `<button class="btn btn-sm btn-outline-dark" onclick="apriModaleModifica(${p.id}, '${p.attivita.replace(/'/g, "\\'")}', '${p.data}', ${p.ora_inizio}, ${p.durata || 1})">✏️ Modifica</button>` : 
+                                '';
+
+                            return `
+                            <tr class="${rowClass}">
+                                <td>${p.data}</td>
+                                <td>${p.ora_inizio}:00</td>
+                                <td>${p.attivita}</td>
+                                <td class="text-center">${btnModifica}</td>
+                            </tr>`;
+                        }).join('');
+
                         divSale.innerHTML += `
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100 border-info border-start border-4 shadow-sm bg-white">
+                            <div class="col-12 mb-4">
+                                <div class="card border-info border-start border-4 shadow-sm bg-white">
                                     <div class="card-body">
-                                        <h5 class="fw-bold text-info border-bottom pb-2">${nomeSala}</h5>
-                                        <ul class="text-muted mb-0 ps-3">${lista}</ul>
+                                        <h5 class="fw-bold text-info mb-3">${nomeSala}</h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-bordered mb-0 align-middle">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Data</th>
+                                                        <th>Ora</th>
+                                                        <th>Attività</th>
+                                                        <th class="text-center" style="width: 120px;">Azioni</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${righeTabella}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -100,6 +172,47 @@
                 }
             });
         }
+
+        let modaleModificaInstance = null;
+
+        function apriModaleModifica(id, attivita, data, ora, durata) {
+            document.getElementById('edit_id').value = id;
+            document.getElementById('edit_attivita').value = attivita;
+            document.getElementById('edit_data').value = data;
+            document.getElementById('edit_ora').value = ora;
+            document.getElementById('edit_durata').value = durata;
+            
+            modaleModificaInstance = new bootstrap.Modal(document.getElementById('modalModifica'));
+            modaleModificaInstance.show();
+        }
+
+        function salvaModifica() {
+            const formData = new URLSearchParams();
+            formData.append('id', document.getElementById('edit_id').value);
+            formData.append('attivita', document.getElementById('edit_attivita').value);
+            formData.append('data', document.getElementById('edit_data').value);
+            formData.append('ora_inizio', document.getElementById('edit_ora').value);
+            formData.append('durata', document.getElementById('edit_durata').value);
+
+            fetch('../backend/aggiorna_prenotazione.php', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    modaleModificaInstance.hide();
+                    caricaCalendario(); // Ricarica la tabella per mostrare le modifiche aggiornate
+                } else {
+                    alert("Errore: " + data.message);
+                }
+            })
+            .catch(err => {
+                alert("Errore di connessione col server.");
+            });
+        }
+
         caricaCalendario(); // Carica appena apri la pagina
     </script>
 </body>

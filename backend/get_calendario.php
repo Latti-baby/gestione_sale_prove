@@ -23,7 +23,7 @@ try {
     $start_str = $start_week->format('Y-m-d');
     $end_str = $end_week->format('Y-m-d');
 
-    // 2. Query per Impegni Utente (Punto 1g)
+    // 2. Query per Impegni Utente
     $stmtImp = $pdo->prepare("
         SELECT p.attivita, p.data, p.ora_inizio, p.durata, s.nome as nome_sala 
         FROM partecipazioni part
@@ -36,9 +36,9 @@ try {
     $stmtImp->execute([$user_id, $start_str, $end_str]);
     $impegni = $stmtImp->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3. Query per Occupazione Sale (Punto 2d)
+    // 3. Query per Occupazione Sale (Aggiornata per includere id, durata e id_utente)
     $stmtSale = $pdo->prepare("
-        SELECT p.attivita, p.data, p.ora_inizio, s.nome as nome_sala 
+        SELECT p.id, p.attivita, p.data, p.ora_inizio, p.durata, s.nome as nome_sala, p.id_utente 
         FROM prenotazioni p
         JOIN sale s ON p.id_sala = s.id
         WHERE p.data >= ? AND p.data <= ?
@@ -47,7 +47,13 @@ try {
     $stmtSale->execute([$start_str, $end_str]);
     $sale = $stmtSale->fetchAll(PDO::FETCH_ASSOC);
 
-    echo json_encode(['success' => true, 'impegni' => $impegni, 'sale' => $sale]);
+    // Restituisco anche l'id utente loggato per il controllo nel frontend
+    echo json_encode([
+        'success' => true, 
+        'impegni' => $impegni, 
+        'sale' => $sale,
+        'current_user_id' => $user_id 
+    ]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => 'Errore: ' . $e->getMessage()]);
 }

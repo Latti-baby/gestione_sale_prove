@@ -58,7 +58,8 @@ try {
     $id_prenotazione_creata = $pdo->lastInsertId();
 
     // 3. SELEZIONE DEGLI INVITATI IN BASE ALLA CATEGORIA
-    $queryIscritti = "SELECT id FROM iscritti WHERE 1=1";
+    // Modifica applicata: Escludo fin da subito chi ha il ruolo di admin o amministratore
+    $queryIscritti = "SELECT id FROM iscritti WHERE ruolo NOT IN ('admin', 'amministratore')";
     $paramsIscritti = [];
 
     if ($tipo_invito === 'settore') {

@@ -3,11 +3,14 @@ session_start();
 header('Content-Type: application/json');
 require_once '../Common/config.php';
 
-// Controllo sicurezza: solo l'amministratore può forzare le modifiche
-if (!isset($_SESSION['user_id']) || ($_SESSION['ruolo'] !== 'admin' && $_SESSION['ruolo'] !== 'amministratore')) {
-    echo json_encode(['success' => false, 'message' => 'Azione non consentita: permessi insufficienti.']);
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'message' => 'Non autorizzato.']);
     exit;
 }
+
+$user_id = $_SESSION['user_id'];
+$ruolo = $_SESSION['ruolo'] ?? '';
+$isAdmin = ($ruolo === 'admin' || $ruolo === 'amministratore');
 
 // Ricezione dati con pulizia da eventuali script malevoli (XSS)
 $id = $_POST['id'] ?? null;
@@ -22,6 +25,19 @@ if (!$id || !$attivita || !$data || !$ora) {
 }
 
 try {
+    // Se non è admin, verifico che la prenotazione sia effettivamente sua
+    if (!$isAdmin) {
+        $stmtCheck = $pdo->prepare("SELECT id_utente FROM prenotazioni WHERE id = ?");
+        $stmtCheck->execute([$id]);
+        $prenotazione = $stmtCheck->fetch();
+
+        if (!$prenotazione || $prenotazione['id_utente'] != $user_id) {
+            echo json_encode(['success' => false, 'message' => 'Azione non consentita: puoi modificare solo le tue prenotazioni.']);
+            exit;
+        }
+    }
+
+    // Se i permessi sono ok, procedo con l'aggiornamento
     $stmt = $pdo->prepare("UPDATE prenotazioni SET attivita = ?, data = ?, ora_inizio = ?, durata = ? WHERE id = ?");
     $stmt->execute([$attivita, $data, $ora, $durata, $id]);
 
