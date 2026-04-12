@@ -34,12 +34,13 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
         if (data.success) {
             const ruoloPulito = data.ruolo; 
             
-            // Salvataggio dati nel browser
+            // Salvataggio dati nel browser (Ora includiamo anche la foto!)
             localStorage.setItem('userName', data.nome);
             localStorage.setItem('userRole', ruoloPulito); 
             localStorage.setItem('userId', data.id);
             localStorage.setItem('isResponsabile', data.isResponsabile);
             localStorage.setItem('userSettore', data.settore || ''); 
+            localStorage.setItem('userFoto', data.foto || 'default.png'); 
 
             // SMISTAMENTO
             if (ruoloPulito === 'admin' || ruoloPulito === 'amministratore') {

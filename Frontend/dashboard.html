@@ -14,6 +14,11 @@
         .navbar { box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .section-title { position: relative; padding-bottom: 10px; margin-bottom: 25px; }
         .section-title::after { content: ''; position: absolute; left: 0; bottom: 0; width: 50px; height: 3px; background: #0d6efd; border-radius: 2px; }
+        
+        .profile-hover { transition: opacity 0.2s ease, transform 0.2s ease; cursor: pointer; text-decoration: none; }
+        .profile-hover:hover { opacity: 0.85; transform: scale(1.02); }
+        /* Aggiunto background-color per l'avatar generato */
+        .profile-img { width: 42px; height: 42px; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); background-color: #0d6efd; }
     </style>
 </head>
 
@@ -22,11 +27,18 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 p-3">
         <div class="container">
             <span class="navbar-brand fw-bold"><i class="bi bi-music-note-beamed me-2"></i>Gestione Sale</span>
+            
             <div class="d-flex align-items-center ms-auto">
-                <span id="userName" class="navbar-text me-4 text-white fw-medium"></span>
+                <a href="profilo.html" class="profile-hover d-flex align-items-center text-white me-4" title="Modifica Profilo">
+                    <img id="userThumb" alt="Foto" class="rounded-circle profile-img me-2">
+                    <div class="d-flex flex-column justify-content-center">
+                        <span id="userName" class="fw-bold lh-1 mb-1" style="font-size: 0.95rem;">Caricamento...</span>
+                        <div id="userBadge" class="lh-1"></div>
+                    </div>
+                </a>
+
                 <div class="btn-group">
                     <a href="calendario.html" class="btn btn-outline-light btn-sm"><i class="bi bi-calendar3 me-1"></i> Calendario</a>
-                    <a href="profilo.html" class="btn btn-outline-info btn-sm"><i class="bi bi-person me-1"></i> Profilo</a>
                     <button class="btn btn-danger btn-sm" onclick="logout()"><i class="bi bi-box-arrow-right"></i></button>
                 </div>
             </div>
@@ -53,21 +65,16 @@
                     </button>
                 </div>
             </div>
-
             <h5 class="section-title text-dark fw-bold">Monitoraggio Inviti Mandati</h5>
             <div id="listaMieiEventi" class="row">
-                <div class="col-12 text-center py-4 text-muted">
-                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                </div>
+                <div class="col-12 text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary"></div></div>
             </div>
         </div>
 
         <div id="sezioneIscritto">
             <h5 class="section-title text-dark fw-bold">Inviti Ricevuti</h5>
             <div id="listaInviti" class="row">
-                <div class="col-12 text-center py-4 text-muted">
-                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                </div>
+                <div class="col-12 text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary"></div></div>
             </div>
         </div>
     </div>
@@ -103,7 +110,6 @@
                                 <input type="number" class="form-control" id="durata_p" min="1" max="5" value="1" required>
                             </div>
                         </div>
-                        
                         <div class="p-3 bg-light rounded border">
                             <h6 class="fw-bold mb-3"><i class="bi bi-people me-2"></i>Destinatari Invito</h6>
                             <div class="row">
@@ -146,7 +152,7 @@
                         <input type="hidden" id="rifiuto_id_prenotazione">
                         <div class="mb-3">
                             <label class="form-label fw-bold text-muted small">Motivazione del rifiuto</label>
-                            <textarea class="form-control" id="rifiuto_motivazione" rows="3" placeholder="Spiega brevemente..." required></textarea>
+                            <textarea class="form-control" id="rifiuto_motivazione" rows="3" placeholder="Spiega perché..." required></textarea>
                         </div>
                     </form>
                 </div>
