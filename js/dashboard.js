@@ -10,19 +10,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // --- SISTEMA FOTO PROFILO INFALLIBILE ---
+    // --- SISTEMA FOTO PROFILO ---
     const userThumb = document.getElementById('userThumb');
     if (userThumb) {
-        // Genera un avatar elegante con l'iniziale del nome (se la foto si rompe)
         const fallbackImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome || 'User')}&background=0d6efd&color=fff&rounded=true&bold=true`;
-
-        // Se l'immagine non si carica (errore 404), passa al fallback
         userThumb.onerror = function() {
-            this.onerror = null; // Impedisce loop infiniti
+            this.onerror = null; 
             this.src = fallbackImg;
         };
-
-        // Assegnazione logica
         if (foto && foto !== "null" && foto !== "undefined" && foto.trim() !== "") {
             userThumb.src = "../Immagini/" + foto;
         } else {
@@ -30,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- ASSEGNAZIONE NOME E BADGE ---
     if (document.getElementById('userName') && nome) {
         document.getElementById('userName').textContent = nome;
         const badge = document.getElementById('userBadge');
@@ -58,6 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Gestione invio modulo prenotazione
     const formPren = document.getElementById('formPrenotazione');
     if (formPren) {
         formPren.addEventListener('submit', function(e) {
@@ -91,6 +86,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// --- FUNZIONI GLOBALI ---
+
+function apriModalePrenotazione() {
+    fetch('../backend/get_sale_settore.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(res => res.json())
+    .then(data => {
+        const sel = document.getElementById('id_sala');
+        if(sel) {
+            sel.innerHTML = '<option value="">Seleziona...</option>';
+            if (data.success) data.sale.forEach(s => { sel.innerHTML += `<option value="${s.id}">${s.nome}</option>`; });
+        }
+    });
+    document.getElementById('data_pren').value = new Date().toISOString().split('T')[0];
+    new bootstrap.Modal(document.getElementById('modalPrenotazione')).show();
+}
+
 function caricaStatoMieiEventi() {
     const lista = document.getElementById('listaMieiEventi');
     if (!lista) return; 
@@ -107,27 +118,36 @@ function caricaStatoMieiEventi() {
             data.eventi.forEach(evento => {
                 let htmlP = '<ul class="list-group list-group-flush border-top mt-3">';
                 evento.partecipanti.forEach(p => {
-                    // CORREZIONE COLORE BADGE QUI
                     let badgeClass = 'bg-secondary';
                     if (p.stato === 'confermato') badgeClass = 'bg-success';
                     else if (p.stato === 'rifiutato') badgeClass = 'bg-danger';
                     else if (p.stato === 'in attesa') badgeClass = 'bg-warning text-dark';
+                    else if (p.stato === 'annullato') badgeClass = 'bg-danger';
                     
                     htmlP += `<li class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-2">
                                 <span class="small fw-medium">${p.nome} ${p.cognome}</span>
                                 <span class="badge ${badgeClass} rounded-pill shadow-sm">${p.stato}</span>
                               </li>`;
                               
-                    if(p.stato === 'rifiutato' && p.motivazione) {
+                    if((p.stato === 'rifiutato' || p.stato === 'annullato') && p.motivazione) {
                         htmlP += `<li class="list-group-item bg-light-subtle py-1 border-0 small text-danger fst-italic">"${p.motivazione}"</li>`;
                     }
                 });
                 htmlP += '</ul>';
+                
+                // MODIFICA: Aggiunto pulsante di eliminazione evento in alto a destra della card
                 lista.innerHTML += `<div class="col-lg-4 mb-4">
                     <div class="card shadow-sm border-0 border-top border-primary border-4 h-100">
                         <div class="card-body">
-                            <h6 class="fw-bold mb-1">${evento.attivita}</h6>
-                            <p class="text-muted small mb-0"><i class="bi bi-geo-alt"></i> ${evento.nome_sala} | <i class="bi bi-clock"></i> ${evento.ora_inizio}:00</p>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="fw-bold mb-1">${evento.attivita}</h6>
+                                    <p class="text-muted small mb-0"><i class="bi bi-geo-alt"></i> ${evento.nome_sala} | <i class="bi bi-clock"></i> ${evento.ora_inizio}:00</p>
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger border-0" onclick="apriModaleEliminaEvento(${evento.id})" title="Annulla Intero Evento">
+                                    <i class="bi bi-trash fs-5"></i>
+                                </button>
+                            </div>
                             ${htmlP}
                         </div>
                     </div>
@@ -158,10 +178,9 @@ function caricaInviti() {
                         `<button class="btn btn-sm btn-success me-2 shadow-sm" onclick="rispondi(${invito.id}, 'confermato')">Accetta</button>
                          <button class="btn btn-sm btn-outline-danger shadow-sm" onclick="apriModaleRifiuto(${invito.id})">Rifiuta</button>`;
                 } else if (giaConfermato) {
-                    bottoni = `<button class="btn btn-sm btn-warning shadow-sm" onclick="rispondi(${invito.id}, 'annullato')">Annulla</button>`;
+                    bottoni = `<button class="btn btn-sm btn-warning shadow-sm" onclick="apriModaleAnnullamento(${invito.id})">Annulla</button>`;
                 }
                 
-                // CORREZIONE COLORE BADGE ANCHE PER GLI INVITI
                 let badgeStatusClass = 'bg-warning text-dark';
                 if (invito.stato === 'rifiutato' || invito.stato === 'annullato') badgeStatusClass = 'bg-danger';
                 else if (giaConfermato) badgeStatusClass = 'bg-success';
@@ -184,18 +203,6 @@ function caricaInviti() {
     });
 }
 
-function apriModalePrenotazione() {
-    fetch('../backend/get_sale_settore.php', { headers: { 'X-Requested-With': 'XMLHttpRequest' } }).then(res => res.json()).then(data => {
-        const sel = document.getElementById('id_sala');
-        if(sel) {
-            sel.innerHTML = '<option value="">Seleziona...</option>';
-            if (data.success) data.sale.forEach(s => { sel.innerHTML += `<option value="${s.id}">${s.nome}</option>`; });
-        }
-    });
-    document.getElementById('data_pren').value = new Date().toISOString().split('T')[0];
-    new bootstrap.Modal(document.getElementById('modalPrenotazione')).show();
-}
-
 function rispondi(id, stato, motivazione = null) {
     const fd = new URLSearchParams();
     fd.append('id_prenotazione', id);
@@ -215,6 +222,44 @@ function confermaRifiuto() {
     const mot = document.getElementById('rifiuto_motivazione').value.trim();
     if(!mot) return alert("Inserisci una motivazione");
     rispondi(id, 'rifiutato', mot);
+}
+
+function apriModaleAnnullamento(id) {
+    document.getElementById('annullamento_id_prenotazione').value = id;
+    new bootstrap.Modal(document.getElementById('modalAnnullamento')).show();
+}
+
+function confermaAnnullamento() {
+    const id = document.getElementById('annullamento_id_prenotazione').value;
+    const mot = document.getElementById('annullamento_motivazione').value.trim();
+    if(!mot) return alert("Inserisci una motivazione per l'annullamento");
+    rispondi(id, 'annullato', mot);
+}
+
+// NUOVE FUNZIONI: ELIMINA EVENTO DA PARTE DEL RESPONSABILE
+function apriModaleEliminaEvento(id) {
+    document.getElementById('elimina_id_prenotazione').value = id;
+    document.getElementById('elimina_motivazione').value = '';
+    new bootstrap.Modal(document.getElementById('modalEliminaEvento')).show();
+}
+
+function confermaEliminazioneEvento() {
+    const id = document.getElementById('elimina_id_prenotazione').value;
+    const mot = document.getElementById('elimina_motivazione').value.trim();
+    if(!mot) return alert("Per favore, inserisci un motivo per avvisare gli iscritti.");
+    
+    const fd = new URLSearchParams();
+    fd.append('id', id);
+    fd.append('motivazione', mot);
+
+    fetch('../backend/elimina_prenotazione.php', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: fd })
+    .then(res => res.json()).then(data => {
+        if(data.success) {
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
 }
 
 function logout() { 

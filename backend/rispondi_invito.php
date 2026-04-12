@@ -3,6 +3,11 @@ session_start();
 require_once '../Common/config.php';
 header('Content-Type: application/json');
 
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'message' => 'Non autorizzato']);
+    exit;
+}
+
 $user_id = $_SESSION['user_id'];
 $id_pren = $_POST['id_prenotazione'];
 $stato = $_POST['stato']; // può essere 'confermato', 'rifiutato', 'annullato'
@@ -27,8 +32,8 @@ if ($stato === 'confermato') {
     }
 }
 
-// Resettiamo la motivazione se l'utente accetta o annulla (opzionale)
-if ($stato !== 'rifiutato') {
+// Resettiamo la motivazione solo se lo stato NON è rifiutato o annullato
+if ($stato !== 'rifiutato' && $stato !== 'annullato') {
     $motivazione = null; 
 }
 
@@ -36,13 +41,11 @@ try {
     $upd = $pdo->prepare("UPDATE partecipazioni SET stato = ?, motivazione = ? WHERE id_prenotazione = ? AND id_iscritto = ?");
     $upd->execute([$stato, $motivazione, $id_pren, $user_id]);
 
-    // --- NUOVA PARTE: NOTIFICA AL DOCENTE ---
-    // 1. Prendi info prenotazione
+    // --- NOTIFICA AL DOCENTE RESPONSABILE ---
     $stmtPren = $pdo->prepare("SELECT id_responsabile, attivita FROM prenotazioni WHERE id = ?");
     $stmtPren->execute([$id_pren]);
     $prenotazione = $stmtPren->fetch(PDO::FETCH_ASSOC);
 
-    // 2. Prendi info studente
     $stmtStud = $pdo->prepare("SELECT nome, cognome FROM iscritti WHERE id = ?");
     $stmtStud->execute([$user_id]);
     $studente = $stmtStud->fetch(PDO::FETCH_ASSOC);
@@ -57,7 +60,6 @@ try {
         $stmtNotifica = $pdo->prepare("INSERT INTO notifiche (id_docente, messaggio) VALUES (?, ?)");
         $stmtNotifica->execute([$prenotazione['id_responsabile'], $msg]);
     }
-    // --- FINE NUOVA PARTE ---
 
     echo json_encode(['success' => true]);
 } catch (PDOException $e) {

@@ -17,7 +17,6 @@
         
         .profile-hover { transition: opacity 0.2s ease, transform 0.2s ease; cursor: pointer; text-decoration: none; }
         .profile-hover:hover { opacity: 0.85; transform: scale(1.02); }
-        /* Aggiunto background-color per l'avatar generato */
         .profile-img { width: 42px; height: 42px; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); background-color: #0d6efd; }
     </style>
 </head>
@@ -159,6 +158,55 @@
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Chiudi</button>
                     <button type="button" class="btn btn-danger px-4 fw-bold" onclick="confermaRifiuto()">Invia Rifiuto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAnnullamento" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold">Annulla Partecipazione</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="formAnnullamento">
+                        <input type="hidden" id="annullamento_id_prenotazione">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small">Motivazione dell'annullamento</label>
+                            <textarea class="form-control" id="annullamento_motivazione" rows="3" placeholder="Spiega perché non puoi più partecipare..." required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Chiudi</button>
+                    <button type="button" class="btn btn-warning px-4 fw-bold" onclick="confermaAnnullamento()">Conferma Annullamento</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEliminaEvento" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold">Annulla Intero Evento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="formEliminaEvento">
+                        <input type="hidden" id="elimina_id_prenotazione">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small">Perché annulli l'evento? (Sarà inviato agli iscritti)</label>
+                            <textarea class="form-control" id="elimina_motivazione" rows="3" placeholder="Es. Emergenza improvvisa, prova rimandata..." required></textarea>
+                        </div>
+                        <p class="text-danger small mb-0 mt-2 fw-medium"><i class="bi bi-exclamation-triangle-fill me-1"></i> Attenzione: Questa azione eliminerà l'evento in modo permanente.</p>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Chiudi</button>
+                    <button type="button" class="btn btn-danger px-4 fw-bold" onclick="confermaEliminazioneEvento()">Conferma ed Elimina</button>
                 </div>
             </div>
         </div>
