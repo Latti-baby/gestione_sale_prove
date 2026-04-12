@@ -12,7 +12,7 @@ $user_id = $_SESSION['user_id'];
 $ruolo = $_SESSION['ruolo'] ?? '';
 $isAdmin = ($ruolo === 'admin' || $ruolo === 'amministratore');
 
-// Ricezione dati con pulizia da eventuali script malevoli (XSS)
+// Ricezione dati
 $id = $_POST['id'] ?? null;
 $attivita = htmlspecialchars($_POST['attivita'] ?? '', ENT_QUOTES, 'UTF-8');
 $data = $_POST['data'] ?? '';
@@ -25,19 +25,20 @@ if (!$id || !$attivita || !$data || !$ora) {
 }
 
 try {
-    // Se non è admin, verifico che la prenotazione sia effettivamente sua
+    // Se non è admin, verifichiamo che la prenotazione appartenga all'utente (id_responsabile)
     if (!$isAdmin) {
-        $stmtCheck = $pdo->prepare("SELECT id_utente FROM prenotazioni WHERE id = ?");
+        $stmtCheck = $pdo->prepare("SELECT id_responsabile FROM prenotazioni WHERE id = ?");
         $stmtCheck->execute([$id]);
         $prenotazione = $stmtCheck->fetch();
 
-        if (!$prenotazione || $prenotazione['id_utente'] != $user_id) {
+        // Corretto: confronto con id_responsabile
+        if (!$prenotazione || $prenotazione['id_responsabile'] != $user_id) {
             echo json_encode(['success' => false, 'message' => 'Azione non consentita: puoi modificare solo le tue prenotazioni.']);
             exit;
         }
     }
 
-    // Se i permessi sono ok, procedo con l'aggiornamento
+    // Aggiornamento dei dati
     $stmt = $pdo->prepare("UPDATE prenotazioni SET attivita = ?, data = ?, ora_inizio = ?, durata = ? WHERE id = ?");
     $stmt->execute([$attivita, $data, $ora, $durata, $id]);
 

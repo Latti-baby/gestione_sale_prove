@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Calendario Settimanale</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body class="bg-light">
@@ -119,18 +120,16 @@
                 if(data.sale.length === 0) {
                     divSale.innerHTML = '<div class="col-12"><div class="alert alert-light border">Nessuna sala occupata in questa settimana.</div></div>';
                 } else {
-                    const saleMap = {}; // Raggruppo le prenotazioni per nome della sala
+                    const saleMap = {}; 
                     data.sale.forEach(s => {
                         if(!saleMap[s.nome_sala]) saleMap[s.nome_sala] = [];
                         saleMap[s.nome_sala].push(s);
                     });
 
                     for(const [nomeSala, prenotazioni] of Object.entries(saleMap)) {
-                        // Costruisco le righe della tabella
                         let righeTabella = prenotazioni.map(p => {
-                            const isMia = (p.id_utente == currentUserId);
-                            const rowClass = isMia ? 'table-warning' : ''; // Evidenzia la propria riga
-                            // Escapo gli apici singoli nell'attività per evitare che rompano il JS
+                            const isMia = (p.id_responsabile == currentUserId);
+                            const rowClass = isMia ? 'table-warning' : ''; 
                             const btnModifica = isMia ? 
                                 `<button class="btn btn-sm btn-outline-dark" onclick="apriModaleModifica(${p.id}, '${p.attivita.replace(/'/g, "\\'")}', '${p.data}', ${p.ora_inizio}, ${p.durata || 1})">✏️ Modifica</button>` : 
                                 '';
@@ -139,7 +138,7 @@
                             <tr class="${rowClass}">
                                 <td>${p.data}</td>
                                 <td>${p.ora_inizio}:00</td>
-                                <td>${p.attivita}</td>
+                                <td>${p.durata}h</td> <td>${p.attivita}</td>
                                 <td class="text-center">${btnModifica}</td>
                             </tr>`;
                         }).join('');
@@ -155,7 +154,7 @@
                                                     <tr>
                                                         <th>Data</th>
                                                         <th>Ora</th>
-                                                        <th>Attività</th>
+                                                        <th>Durata</th> <th>Attività</th>
                                                         <th class="text-center" style="width: 120px;">Azioni</th>
                                                     </tr>
                                                 </thead>
@@ -170,6 +169,9 @@
                         `;
                     }
                 }
+            })
+            .catch(err => {
+                document.getElementById('occupazioneSale').innerHTML = '<div class="alert alert-danger">Errore di comunicazione col server.</div>';
             });
         }
 
@@ -203,7 +205,7 @@
             .then(data => {
                 if(data.success) {
                     modaleModificaInstance.hide();
-                    caricaCalendario(); // Ricarica la tabella per mostrare le modifiche aggiornate
+                    caricaCalendario(); 
                 } else {
                     alert("Errore: " + data.message);
                 }
@@ -213,7 +215,7 @@
             });
         }
 
-        caricaCalendario(); // Carica appena apri la pagina
+        caricaCalendario(); 
     </script>
 </body>
 </html>

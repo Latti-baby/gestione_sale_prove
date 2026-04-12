@@ -23,7 +23,7 @@ try {
     $start_str = $start_week->format('Y-m-d');
     $end_str = $end_week->format('Y-m-d');
 
-    // 2. Query per Impegni Utente
+    // 2. Query per Impegni Utente: UNIONE tra eventi a cui sei invitato ed eventi creati da te
     $stmtImp = $pdo->prepare("
         SELECT p.attivita, p.data, p.ora_inizio, p.durata, s.nome as nome_sala 
         FROM partecipazioni part
@@ -31,14 +31,24 @@ try {
         JOIN sale s ON p.id_sala = s.id
         WHERE part.id_iscritto = ? AND part.stato IN ('confermato', 'in attesa') 
         AND p.data >= ? AND p.data <= ?
-        ORDER BY p.data ASC, p.ora_inizio ASC
+        
+        UNION 
+        
+        SELECT p.attivita, p.data, p.ora_inizio, p.durata, s.nome as nome_sala 
+        FROM prenotazioni p
+        JOIN sale s ON p.id_sala = s.id
+        WHERE p.id_responsabile = ? 
+        AND p.data >= ? AND p.data <= ?
+        
+        ORDER BY data ASC, ora_inizio ASC
     ");
-    $stmtImp->execute([$user_id, $start_str, $end_str]);
+    // Passo le variabili due volte: 3 per la prima query (inviti), 3 per la seconda (creati da me)
+    $stmtImp->execute([$user_id, $start_str, $end_str, $user_id, $start_str, $end_str]);
     $impegni = $stmtImp->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3. Query per Occupazione Sale (Aggiornata per includere id, durata e id_utente)
+    // 3. Query per Occupazione Sale (Tutte le sale occupate, con identificazione per modifica)
     $stmtSale = $pdo->prepare("
-        SELECT p.id, p.attivita, p.data, p.ora_inizio, p.durata, s.nome as nome_sala, p.id_utente 
+        SELECT p.id, p.attivita, p.data, p.ora_inizio, p.durata, s.nome as nome_sala, p.id_responsabile 
         FROM prenotazioni p
         JOIN sale s ON p.id_sala = s.id
         WHERE p.data >= ? AND p.data <= ?
